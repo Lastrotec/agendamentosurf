@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ff571c">
+<meta name="theme-color" content="#f6efe4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Seu próximo encontro com o mar. Aulas de surf com Romário de Jesus em Jaguaribe e no Farol da Barra, Salvador. Agende e pague o sinal por Pix ou cartão.">
 <title>Outside Surf School · Aulas de surf em Salvador</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -102,13 +105,19 @@ html.splashing,html.splashing body{overflow:hidden}
   document.body.appendChild(el);
   document.documentElement.classList.add('splashing');
   // Começa só depois do primeiro quadro pintado, para não "pular" o início.
-  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('go')));
+  // A barra do navegador acompanha a cena: creme, depois a cor do mar quando a onda chega ao topo.
+  const bar = document.querySelector('meta[name="theme-color"]');
+  const setBar = c => { if (bar) bar.content = c; };
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    el.classList.add('go');
+    if (!reduce) setTimeout(() => { if (!el.classList.contains('out')) setBar('#1f8f8a'); }, 2150);
+  }));
 
   const finish = () => {
     if (el.classList.contains('out')) return;
     el.classList.add('out');
     document.documentElement.classList.remove('splashing');
-    setTimeout(() => el.remove(), 850);
+    setTimeout(() => { setBar(document.body.classList.contains('dark') ? '#101210' : '#f7f8f5'); el.remove(); }, 850);
   };
   el.addEventListener('click', finish);
   setTimeout(finish, reduce ? 700 : 3100);

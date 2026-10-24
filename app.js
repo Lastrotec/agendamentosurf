@@ -232,7 +232,12 @@ const myInbox = () => state.inbox.filter(n => n.to === (role === 'admin' ? 'admi
 const unread = () => myInbox().filter(n => !n.read).length;
 
 /* ---------- Tema e utilidades de UI ---------- */
-function applyTheme() { document.body.classList.toggle('dark', theme === 'dark' || theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches); }
+function applyTheme() {
+  const dark = theme === 'dark' || theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches;
+  document.body.classList.toggle('dark', dark);
+  // Barra do navegador na cor do fundo do app (durante a abertura quem controla é a animação).
+  if (!document.documentElement.classList.contains('splashing')) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#101210' : '#f7f8f5');
+}
 applyTheme();
 function toast(t) { $('#toast').textContent = t; $('#toast').classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => $('#toast').classList.remove('show'), 4200); }
 function modal(title, body, cls = '') {
