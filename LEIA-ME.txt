@@ -15,6 +15,12 @@ O QUE TEM
   e configurações.
 - Quiver: o instrutor fotografa a prancha, o fundo é recortado automaticamente no aparelho
   e ele escolhe quais pranchas ficam disponíveis para os alunos.
+- Abertura animada: uma onda com espuma sobe e cobre a logo (uma vez por sessão; toque para pular).
+- Previsão do mar (tela "Previsão" e dentro do agendamento): ondas, swell, vento (terral, lateral
+  ou maral), maré hora a hora e nota da condição para aula. Ao escolher o horário, o aluno vê a
+  previsão antes de pagar. A maré baixa da previsão define os horários do Farol (o instrutor
+  ainda pode ajustar). Fonte: Open-Meteo Marine/Forecast, gratuita para uso não comercial; para
+  uso comercial contrate o plano da Open-Meteo. Sem conexão, o app mostra uma simulação avisada.
 - Notificações push para o instrutor a cada agendamento, pagamento ou remarcação,
   com botão "Enviar push de teste" no Painel.
 
