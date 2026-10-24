@@ -113,3 +113,6 @@ svg.dir{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stro
 .fc-tide-mini{font-size:12px!important;line-height:1.5}.fc-day-card .tide-chart{margin-top:12px}.fc-day-card+.fc-card{margin-top:12px}
 @media(max-width:700px){.nav button{font-size:8px}.nav .ico{height:19px;width:19px}}
 html{background:var(--bg)}html:has(body.dark){background:#101210}
+/* iPhone instalado: conteúdo por baixo da barra de status (abertura em tela cheia). */
+.topbar{padding-top:env(safe-area-inset-top);height:calc(87px + env(safe-area-inset-top))}.sidebar{padding-top:calc(35px + env(safe-area-inset-top))}
+@media(max-width:700px){.topbar{height:calc(74px + env(safe-area-inset-top))}.sidebar{padding-top:6px}}
