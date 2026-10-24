@@ -36,7 +36,7 @@
 
   const bubbles = Array.from({ length: 26 }, (_, i) => {
     const size = 4 + rand() * 12;
-    return `<i style="left:${(rand() * 100).toFixed(1)}%;width:${size.toFixed(0)}px;height:${size.toFixed(0)}px;animation-delay:${(1.25 + rand() * 0.8).toFixed(2)}s;--drift:${(rand() * 40 - 20).toFixed(0)}px"></i>`;
+    return `<i style="left:${(rand() * 100).toFixed(1)}%;width:${size.toFixed(0)}px;height:${size.toFixed(0)}px;animation-delay:${(1.5 + rand() * 0.9).toFixed(2)}s;--drift:${(rand() * 40 - 20).toFixed(0)}px"></i>`;
   }).join('');
 
   const el = document.createElement('div');
@@ -44,10 +44,7 @@
   el.setAttribute('aria-hidden', 'true');
   el.className = reduce ? 'reduce' : '';
   el.innerHTML = `
-    <div class="sp-logo">
-      <svg viewBox="0 0 60 70"><path d="M3 40c12-2 9-21 22-29 9-6 19-6 28-1-18 4-17 17-12 24 3 4 7 5 13 6v4H3z"/><path class="sp-line" d="M3 54q5-8 10 0t10 0 10 0 10 0 10 0" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>
-      <div class="sp-name">outside<small>SURF SCHOOL</small></div>
-    </div>
+    <div class="sp-logo"><div class="sp-mark orange"><svg viewBox="0 0 60 70"><path d="M3 40c12-2 9-21 22-29 9-6 19-6 28-1-18 4-17 17-12 24 3 4 7 5 13 6v4H3z"/><path d="M3 54q5-8 10 0t10 0 10 0 10 0 10 0" fill="none" stroke="currentColor" stroke-width="2.4"/></svg><div class="sp-name">outside<small>SURF SCHOOL</small></div></div><div class="sp-mark white"><svg viewBox="0 0 60 70"><path d="M3 40c12-2 9-21 22-29 9-6 19-6 28-1-18 4-17 17-12 24 3 4 7 5 13 6v4H3z"/><path d="M3 54q5-8 10 0t10 0 10 0 10 0 10 0" fill="none" stroke="currentColor" stroke-width="2.4"/></svg><div class="sp-name">outside<small>SURF SCHOOL</small></div></div></div>
     <div class="sp-sea">
       ${layer('l3', '#0b3f45', 70, 18, false)}
       ${layer('l2', '#0f5e5b', 80, 14, false)}
@@ -56,13 +53,15 @@
     </div>`;
   document.body.appendChild(el);
   document.documentElement.classList.add('splashing');
+  // Começa só depois do primeiro quadro pintado, para não "pular" o início.
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('go')));
 
   const finish = () => {
     if (el.classList.contains('out')) return;
     el.classList.add('out');
     document.documentElement.classList.remove('splashing');
-    setTimeout(() => el.remove(), 650);
+    setTimeout(() => el.remove(), 850);
   };
   el.addEventListener('click', finish);
-  setTimeout(finish, reduce ? 700 : 3000);
+  setTimeout(finish, reduce ? 700 : 3100);
 })();
