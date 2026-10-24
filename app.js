@@ -68,7 +68,7 @@ function estimateTide(date) {
   const start = Math.min(14, Math.max(6, h - 1));
   return { period: start < 12 ? 'manhã' : 'tarde', hours: [0, 1, 2].map(i => String(start + i).padStart(2, '0') + ':00'), low: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`, estimated: true };
 }
-const tideFor = date => state.tides[date] || estimateTide(date);
+const tideFor = date => state.tides[date] || forecastTide(date) || estimateTide(date);
 
 /* ---------- Dados iniciais ---------- */
 const STORE_KEY = 'outside-surf-v2';
@@ -250,7 +250,7 @@ const detail = (label, value) => `<div class="detail-row"><span>${label}</span><
    Layout
    ========================================================================= */
 const navs = () => role === 'student'
-  ? [['home', 'home', 'Início'], ['book', 'calendar', 'Agendar'], ['lessons', 'wave', 'Minhas aulas'], ['boards', 'board', 'Pranchas'], ['profile', 'user', 'Perfil']]
+  ? [['home', 'home', 'Início'], ['book', 'calendar', 'Agendar'], ['forecast', 'tide', 'Previsão'], ['lessons', 'wave', 'Minhas aulas'], ['boards', 'board', 'Pranchas'], ['profile', 'user', 'Perfil']]
   : [['home', 'chart', 'Painel'], ['agenda', 'calendar', 'Agenda'], ['requests', 'list', 'Reservas'], ['quiver', 'board', 'Quiver'], ['students', 'users', 'Alunos'], ['finance', 'money', 'Financeiro']];
 function navBadge(id) {
   if (role === 'admin' && id === 'requests') { const n = state.bookings.filter(b => b.status === 'awaiting').length; return n ? `<i class="nav-badge">${n}</i>` : ''; }
@@ -276,7 +276,7 @@ function render() {
   </aside>
   <main class="main">
     <header class="topbar">
-      <div class="breadcrumb">${esc(S().school)} <span>/</span><span>${page === 'student' ? 'Ficha do aluno' : page === 'places' ? 'Locais' : n.find(x => x[0] === page)?.[2] || 'Início'}</span></div>
+      <div class="breadcrumb">${esc(S().school)} <span>/</span><span>${page === 'student' ? 'Ficha do aluno' : page === 'places' ? 'Locais' : page === 'forecast' ? 'Previsão do mar' : n.find(x => x[0] === page)?.[2] || 'Início'}</span></div>
       <a class="mobile-brand" href="#" data-action="nav:home">outside.</a>
       <div class="top-actions">
         <span class="demo">Demonstração</span>
@@ -292,9 +292,9 @@ function render() {
 }
 function renderPage() {
   if (role === 'admin') {
-    return ({ home: adminHome, agenda, requests, quiver, students, student: () => studentProfile(getStudent(selectedStudent)), finance, places })[page]?.() || adminHome();
+    return ({ home: adminHome, agenda, requests, quiver, students, student: () => studentProfile(getStudent(selectedStudent)), finance, places, forecast: forecastPage })[page]?.() || adminHome();
   }
-  return ({ home, book, lessons, boards: boardGallery, profile, places })[page]?.() || home();
+  return ({ home, book, lessons, boards: boardGallery, profile, places, forecast: forecastPage })[page]?.() || home();
 }
 
 /* =========================================================================
@@ -342,6 +342,8 @@ function home() {
   return `<div class="greeting"><div><h1>Bora pro mar, ${esc(me().name.split(' ')[0])}? <span style="color:var(--orange)">☀</span></h1><p>Aulas com ${esc(S().instructor)} em Jaguaribe e no Farol da Barra.</p></div><div class="date-label">${icon('calendar')}${fmt(today(), { day: 'numeric', month: 'long', year: 'numeric' })}</div></div>
   <div class="home-grid"><div>
     <section class="hero"><img src="surf.jpg" alt="Surfista em uma onda azul sob a luz do sol"><div class="hero-copy"><div class="eyebrow"><span class="dot"></span> AULAS DE 1 HORA · PRANCHA INCLUSA</div><h2>Seu próximo<br>encontro com o <em>mar.</em></h2><p>Reserve com 50% de sinal via Pix ou cartão.</p>${btn('Agendar minha aula', 'nav:book', '', 'arrow')}</div></section>
+    <div class="section-head"><h2>Como está o mar</h2><button type="button" class="text-btn" data-action="nav:forecast">Previsão completa ${icon('arrow')}</button></div>
+    ${seaNow()}
     <div class="section-head"><h2>Sua próxima sessão</h2><button type="button" class="text-btn" data-action="nav:lessons">Ver minhas aulas ${icon('arrow')}</button></div>
     ${next ? lessonCard(next) : emptyState('wave', 'Seu próximo mergulho na rotina.', 'Escolha uma praia, um horário e encontre a gente no mar.', btn('Encontrar uma aula', 'nav:book', '', 'arrow'))}
     ${lastTip ? `<div class="section-head"><h2>Dica do instrutor</h2></div><div class="card tip">${icon('leaf')}<div><p>“${esc(lastTip.text)}”</p><small>${esc(S().instructor)} · ${fmt(lastTip.date)}</small></div></div>` : ''}
@@ -401,8 +403,8 @@ function book() {
     ${p ? `<section class="card step"><h3><b>${rb ? 2 : 3}</b> Data e horário</h3>
       <div class="date-navigation"><strong style="font-size:12px">${fmt(bk.start, { month: 'long', year: 'numeric' })}</strong><div class="row"><button type="button" class="icon-btn" data-action="bk-week:-7" aria-label="Dias anteriores" ${bk.start <= today() ? 'disabled' : ''}>${icon('left')}</button><button type="button" class="icon-btn" data-action="bk-week:7" aria-label="Próximos dias">${icon('chevron')}</button></div></div>
       <div class="dates scroll">${days.map(d => { const open = d >= today() && isClassDay(p.id, d) && !dayBlock(p.id, d) && slotsFor(p.id, d, rb?.id).some(openForStudents); return `<button type="button" class="day ${d === bk.date ? 'active' : ''}" data-action="bk-date:${d}" ${open ? '' : 'disabled'}><small>${fmt(d, { weekday: 'short' }).replace('.', '')}</small><strong>${fmt(d, { day: '2-digit' })}</strong>${open ? '<i></i>' : ''}</button>`; }).join('')}</div>
-      ${tide ? `<div class="tide-note">${icon('tide')}<span>Maré ${tide.estimated ? 'estimada' : 'definida pelo instrutor'} · aulas pela <strong>${tide.period}</strong>${tide.low ? ` · maré baixa ~${tide.low}` : ''}</span></div>` : ''}
-      ${bk.date ? `<div class="slot-grid">${slots.length ? slots.map(s => { const mine = state.bookings.some(x => x.id !== rb?.id && x.student === me().id && isLive(x) && x.date === s.date && x.time === s.time), ok = openForStudents(s) && s.free >= bk.people && !mine; return `<button type="button" class="slot-btn ${bk.time === s.time ? 'active' : ''}" data-action="bk-time:${s.time}" ${ok ? '' : 'disabled'}><strong>${s.time}</strong><small>${mine ? 'Você já tem aula' : s.block ? 'Indisponível' : s.soon ? 'Encerrado' : s.free <= 0 ? 'Lotado' : s.free < bk.people ? 'Só 1 vaga' : p.capacity > 1 ? `${s.free} de ${p.capacity} vagas` : 'Disponível'}</small></button>`; }).join('') : '<p class="muted">Sem horários neste dia.</p>'}</div>` : '<p class="muted spacer" style="font-size:12px">Os dias com bolinha têm horários livres.</p>'}
+      ${tide ? `<div class="tide-note">${icon('tide')}<span>Maré ${tide.estimated ? 'estimada' : tide.source === 'previsão' ? 'pela previsão' : 'definida pelo instrutor'} · aulas pela <strong>${tide.period}</strong>${tide.low ? ` · maré baixa ~${tide.low}` : ''}</span></div>` : ''}
+      ${bk.date ? `<div class="slot-grid">${slots.length ? slots.map(s => { const mine = state.bookings.some(x => x.id !== rb?.id && x.student === me().id && isLive(x) && x.date === s.date && x.time === s.time), ok = openForStudents(s) && s.free >= bk.people && !mine; return `<button type="button" class="slot-btn ${bk.time === s.time ? 'active' : ''}" data-action="bk-time:${s.time}" ${ok ? '' : 'disabled'}><strong>${s.time}</strong><small>${mine ? 'Você já tem aula' : s.block ? 'Indisponível' : s.soon ? 'Encerrado' : s.free <= 0 ? 'Lotado' : s.free < bk.people ? 'Só 1 vaga' : p.capacity > 1 ? `${s.free} de ${p.capacity} vagas` : 'Disponível'}</small>${slotForecast(p.id, s.date, s.time)}</button>`; }).join('') : '<p class="muted">Sem horários neste dia.</p>'}</div>${bk.time ? conditionsCard(p.id, bk.date, bk.time) : slots.length ? '<p class="legal-note spacer">Toque em um horário para ver a previsão do mar antes de agendar.</p>' : ''}` : '<p class="muted spacer" style="font-size:12px">Os dias com bolinha têm horários livres.</p>'}
     </section>` : ''}
   </div>
   <aside class="booking-side"><div class="card summary">
@@ -412,6 +414,7 @@ function book() {
     ${p && bk.people > 1 ? detail('Pessoas', bk.people) : ''}
     ${bk.date ? detail('Data', fmt(bk.date, { weekday: 'short', day: 'numeric', month: 'short' })) : ''}
     ${bk.time ? detail('Horário', `${bk.time} – ${addHour(bk.time)}`) : ''}
+    ${bk.time && Forecast.peek(p.id) ? (r => r ? detail('Mar previsto', ratePill(r)) : '')(Forecast.rate(p.id, Forecast.hourAt(Forecast.peek(p.id), bk.date, +bk.time.slice(0, 2)))) : ''}
     ${p && !rb && bk.plan !== 'credit' ? `${detail('Total', money(total))}<div class="detail-row total"><span>Sinal agora (${S().depositPct}%)</span><strong>${money(dep)}</strong></div><p class="legal-note">Restante de ${money(total - dep)} pago até o dia da aula.</p>` : ''}
     <button type="button" class="btn full spacer" data-action="bk-submit" ${ready ? '' : 'disabled'}>${rb ? 'Confirmar remarcação' : bk.plan === 'credit' ? 'Agendar com crédito' : 'Continuar para pagamento'} ${icon(rb || bk.plan === 'credit' ? 'check' : 'lock')}</button>
     <p class="legal-note spacer">${icon('lock')} Pagamento seguro · Pix ou cartão</p>
@@ -445,6 +448,135 @@ function profile() {
   </div>${boardCard(getBoard(s.board), { eyebrow: 'SUA PRANCHA HABITUAL' })}</div></div>`;
 }
 
+/* =========================================================================
+   Previsão do mar (ondas, vento e maré)
+   ========================================================================= */
+let fcSpot = 'jaguaribe', fcDate = today();
+const fcLoading = {};
+function ensureForecast(spot) {
+  if (typeof Forecast === 'undefined' || Forecast.peek(spot) || fcLoading[spot]) return;
+  fcLoading[spot] = true;
+  Forecast.load(spot).finally(() => {
+    fcLoading[spot] = false;
+    if (['book', 'forecast', 'home', 'agenda'].includes(page)) { const y = window.scrollY; render(); window.scrollTo(0, y); }
+  });
+}
+const dirArrow = (deg, cls = '') => deg == null ? '' : `<svg class="dir ${cls}" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(${Math.round(deg)}deg)"><path d="M12 4v16m-5-5 5 5 5-5"/></svg>`;
+const hh = h => String(h).padStart(2, '0') + 'h';
+const m1 = v => v == null ? '—' : (Math.round(v * 10) / 10).toLocaleString('pt-BR', { minimumFractionDigits: 1 });
+const ratePill = r => r ? `<span class="rate ${r.cls}"><i></i>${r.label}</span>` : '';
+const fcSource = data => `<p class="legal-note fc-source">${icon('info')} ${data?.simulated ? 'Sem conexão com o serviço de previsão: exibindo uma <strong>simulação</strong>.' : `Dados Open-Meteo (modelos de ondas e vento) · atualizado ${data ? new Date(data.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''}. Maré modelada: confira a tábua da Marinha.`}</p>`;
+
+// Horários do Farol pela maré: usa a maré baixa da previsão quando disponível.
+function forecastTide(date) {
+  const data = typeof Forecast !== 'undefined' && Forecast.peek('farol');
+  if (!data || data.simulated) return null;
+  const low = Forecast.tides(data, date).find(t => t.type === 'baixa' && t.minutes >= 6 * 60 && t.minutes <= 16 * 60);
+  if (!low) return null;
+  const start = Math.min(14, Math.max(6, Math.round(low.minutes / 60) - 1));
+  return { period: start < 12 ? 'manhã' : 'tarde', hours: [0, 1, 2].map(i => String(start + i).padStart(2, '0') + ':00'), low: low.time, estimated: false, source: 'previsão' };
+}
+
+// Cartão de condições para um horário específico (usado no agendamento).
+function conditionsCard(spot, date, time, { compact = false } = {}) {
+  const data = Forecast.peek(spot), hour = +time.slice(0, 2);
+  if (!data) return `<div class="fc-card loading"><div class="spinner sm"></div><p>Carregando a previsão do mar…</p></div>`;
+  if (date > Forecast.lastDate(data)) return `<div class="fc-card empty-fc">${icon('wave')}<p>A previsão do mar para ${fmtShort(date)} fica disponível até 7 dias antes da aula.</p></div>`;
+  const h = Forecast.hourAt(data, date, hour), r = Forecast.rate(spot, h);
+  if (!h) return '';
+  const trend = Forecast.tideTrend(data, date, hour), pct = Forecast.tidePct(data, date, hour), tides = Forecast.tides(data, date);
+  const kind = Forecast.windKind(spot, h.windDir);
+  return `<div class="fc-card">
+    <div class="fc-head"><div><div class="eyebrow">PREVISÃO DO MAR</div><h3>${esc(getPlace(spot).short)} · ${fmtShort(date)} às ${hh(hour)}</h3></div>${ratePill(r)}</div>
+    <div class="fc-grid">
+      <div><small>ONDAS</small><strong>${m1(h.wave)} m</strong><span>${dirArrow(h.dir)}${Forecast.compass(h.dir)} · ${Math.round(h.period)} s</span></div>
+      <div><small>SWELL</small><strong>${m1(h.swell)} m</strong><span>${dirArrow(h.swellDir)}${Forecast.compass(h.swellDir)} · ${Math.round(h.swellPeriod)} s</span></div>
+      <div><small>VENTO</small><strong>${h.wind == null ? '—' : Math.round(h.wind) + ' km/h'}</strong><span>${dirArrow(h.windDir)}${h.windDir == null ? '' : Forecast.compass(h.windDir)}${kind ? ` · <b class="wk ${kind}">${kind}</b>` : ''}</span></div>
+      <div><small>MARÉ</small><strong>${trend ? trend[0].toUpperCase() + trend.slice(1) : '—'}</strong><span class="tide-bar"><i style="width:${pct ?? 0}%"></i></span></div>
+    </div>
+    ${compact ? '' : `<p class="fc-advice">${icon('leaf')} ${esc(Forecast.advice(spot, h))}</p>
+    <div class="fc-tides">${tides.map(t => `<span class="${t.type}">${t.type === 'alta' ? '▲' : '▼'} Maré ${t.type} ${t.time} <em>${m1(t.height)} m</em></span>`).join('')}</div>
+    <div class="row between wrap"><button type="button" class="text-btn" data-action="fc-open:${spot}|${date}">Ver previsão completa do dia ${icon('arrow')}</button>${h.temp != null ? `<small class="muted">${Math.round(h.temp)}°C no ar</small>` : ''}</div>`}
+  </div>`;
+}
+
+function tideChart(spot, date, data) {
+  const hs = Forecast.dayHours(data, date).filter(h => h.tide != null);
+  if (hs.length < 6) return '';
+  const W = 640, H = 165, P = 18, lo = Math.min(...hs.map(h => h.tide)) - 0.15, hi = Math.max(...hs.map(h => h.tide)) + 0.15;
+  const x = hour => P + hour / 23 * (W - 2 * P), y = v => H - 44 - (v - lo) / (hi - lo) * (H - 70);
+  const pts = hs.map(h => [x(h.hour), y(h.tide)]);
+  let d = `M${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], cx = (x0 + x1) / 2; d += ` C${cx} ${y0} ${cx} ${y1} ${x1} ${y1}`; }
+  const lessons = (getPlace(spot).schedule === 'tide' ? tideFor(date).hours : getPlace(spot).hours).map(t => +t.slice(0, 2));
+  const now = date === today() ? new Date(Date.now() - 3 * 3600e3) : null, nowH = now ? now.getUTCHours() + now.getUTCMinutes() / 60 : null;
+  const extremes = Forecast.tides(data, date);
+  return `<svg class="tide-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico da maré em ${fmt(date)}">
+    <defs><linearGradient id="tideFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#1f8f8a" stop-opacity=".35"/><stop offset="1" stop-color="#1f8f8a" stop-opacity=".02"/></linearGradient></defs>
+    ${lessons.map(hr => `<rect x="${x(hr)}" y="8" width="${x(hr + 1) - x(hr)}" height="${H - 34}" class="lesson-band"/>`).join('')}
+    <path d="${d} L${pts.at(-1)[0]} ${H - 26} L${pts[0][0]} ${H - 26} Z" fill="url(#tideFill)"/>
+    <path d="${d}" class="tide-line"/>
+    ${extremes.map(t => { const hx = x(t.minutes / 60), hy = y(t.height); return `<circle cx="${hx}" cy="${hy}" r="4" class="tide-pt ${t.type}"/><text x="${hx}" y="${t.type === 'alta' ? hy - 10 : hy + 18}" text-anchor="middle" class="tide-lbl">${t.time}</text>`; }).join('')}
+    ${nowH != null ? `<line x1="${x(nowH)}" x2="${x(nowH)}" y1="6" y2="${H - 26}" class="now-line"/><text x="${x(nowH)}" y="${H - 30}" text-anchor="middle" class="now-lbl">agora</text>` : ''}
+    ${[0, 3, 6, 9, 12, 15, 18, 21].map(hr => `<text x="${x(hr)}" y="${H - 8}" text-anchor="middle" class="axis">${hh(hr)}</text>`).join('')}
+  </svg>`;
+}
+
+function forecastPage() {
+  const data = Forecast.peek(fcSpot), p = getPlace(fcSpot);
+  state.places.forEach(pl => ensureForecast(pl.id));
+  const days = data ? [...new Set(data.hours.map(h => h.date))].filter(d => d >= today()) : [];
+  if (days.length && !days.includes(fcDate)) fcDate = days[0];
+  const lessonHours = d => (p.schedule === 'tide' ? tideFor(d).hours : p.hours).map(t => +t.slice(0, 2));
+  const dayBest = d => {
+    if (!isClassDay(p.id, d)) return null;
+    return lessonHours(d).map(hr => ({ hr, r: Forecast.rate(fcSpot, Forecast.hourAt(data, d, hr)) })).filter(x => x.r).sort((a, b) => b.r.score - a.r.score)[0] || null;
+  };
+  const hours = data ? Forecast.dayHours(data, fcDate).filter(h => h.hour >= 5 && h.hour <= 18) : [];
+  const best = data ? dayBest(fcDate) : null, lessonsToday = lessonHours(fcDate);
+  const waves = hours.map(h => h.wave), sun = data?.sun?.[fcDate];
+  return `<div class="page-content">${title('Previsão do mar.', 'Ondas, vento e maré hora a hora nos picos das aulas.', btn('Atualizar', 'fc-refresh', 'secondary', 'refresh'))}
+  <div class="row between wrap fc-top"><div class="seg">${state.places.map(pl => `<button type="button" class="${fcSpot === pl.id ? 'active' : ''}" data-action="fc-spot:${pl.id}">${esc(pl.short)}</button>`).join('')}</div>${data ? '' : '<span class="muted small"><span class="spinner sm"></span> Carregando…</span>'}</div>
+  ${data ? `<div class="fc-days">${days.map(d => { const b = dayBest(d), dh = Forecast.dayHours(data, d), max = Math.max(...dh.map(h => h.wave)); return `<button type="button" class="fc-day ${d === fcDate ? 'active' : ''}" data-action="fc-date:${d}"><small>${fmt(d, { weekday: 'short' }).replace('.', '')} ${fmt(d, { day: '2-digit' })}</small><strong>${m1(max)}<em>m</em></strong>${b ? `<span class="rate-bar ${b.r.cls}"></span><small>${b.r.label}</small>` : '<span class="rate-bar none"></span><small>sem aula</small>'}</button>`; }).join('')}</div>
+  <div class="fc-layout"><div>
+    <section class="card fc-summary">
+      <div class="row between wrap"><div><div class="eyebrow">${esc(p.name).toUpperCase()}</div><h2>${fmt(fcDate, { weekday: 'long', day: 'numeric', month: 'long' })}</h2></div>${best ? ratePill(best.r) : ''}</div>
+      <div class="fc-stats">
+        <div><small>ONDAS</small><strong>${m1(Math.min(...waves))}–${m1(Math.max(...waves))} m</strong></div>
+        <div><small>MELHOR HORÁRIO DE AULA</small><strong>${best ? `${hh(best.hr)} · ${best.r.label}` : 'Sem aula neste dia'}</strong></div>
+        ${sun ? `<div><small>SOL</small><strong>${sun.rise} – ${sun.set}</strong></div>` : ''}
+        <div><small>MARÉS</small><strong class="fc-tide-list">${Forecast.tides(data, fcDate).map(t => `${t.type === 'alta' ? '▲' : '▼'} ${t.time}`).join(' · ') || '—'}</strong></div>
+      </div>
+      ${tideChart(fcSpot, fcDate, data)}
+      <p class="legal-note"><span class="legend-band"></span> Horários de aula ${p.schedule === 'tide' ? 'definidos pela maré' : 'em ' + esc(p.short)}</p>
+    </section>
+    <section class="card fc-table spacer"><div class="fc-row head"><span>Hora</span><span>Condição</span><span>Ondas</span><span>Swell</span><span>Vento</span><span>Maré</span><span></span></div>
+      ${hours.map(h => { const r = Forecast.rate(fcSpot, h), lesson = lessonsToday.includes(h.hour) && isClassDay(p.id, fcDate), kind = Forecast.windKind(fcSpot, h.windDir), trend = Forecast.tideTrend(data, fcDate, h.hour), slot = lesson && slotsFor(p.id, fcDate).find(s => +s.time.slice(0, 2) === h.hour); return `<div class="fc-row ${lesson ? 'lesson' : ''}">
+        <span class="hr">${hh(h.hour)}</span><span>${ratePill(r)}</span>
+        <span><b>${m1(h.wave)} m</b>${dirArrow(h.dir)}<small>${Math.round(h.period)}s</small></span>
+        <span>${m1(h.swell)} m<small>${Math.round(h.swellPeriod)}s ${Forecast.compass(h.swellDir)}</small></span>
+        <span>${h.wind == null ? '—' : `<b>${Math.round(h.wind)}</b>`}${dirArrow(h.windDir)}<small class="wk ${kind}">${kind}</small></span>
+        <span>${trend === 'enchendo' ? '↗' : trend === 'secando' ? '↘' : '→'} <small>${trend || ''}</small></span>
+        <span>${role === 'student' && slot && openForStudents(slot) ? `<button type="button" class="btn small" data-action="fc-book:${p.id}|${fcDate}|${slot.time}">Agendar</button>` : lesson ? '<small class="muted">aula</small>' : ''}</span>
+      </div>`; }).join('')}
+    </section>
+  </div><aside>
+    <section class="card"><h3>Como ler</h3>
+      <div class="legend"><span class="rate great"><i></i>Excelente</span><span class="rate good"><i></i>Bom</span><span class="rate fair"><i></i>Regular</span><span class="rate poor"><i></i>Difícil</span></div>
+      <p class="muted spacer" style="font-size:12px;line-height:1.7">A nota considera o tamanho e o período das ondas e o vento para <strong>aula</strong>: ondas entre 0,5 e 1,3 m e vento <b class="wk terral">terral</b> (da terra para o mar) são o ideal. Vento <b class="wk maral">maral</b> forte deixa o mar mexido.</p>
+    </section>
+    <section class="card spacer"><h3>Agora nos picos</h3>${state.places.map(pl => { const d = Forecast.peek(pl.id), h = d && Forecast.hourAt(d, today(), Math.min(23, new Date(Date.now() - 3 * 3600e3).getUTCHours())); return `<button type="button" class="now-spot" data-action="fc-spot:${pl.id}"><span><strong>${esc(pl.short)}</strong><small>${h ? `${m1(h.wave)} m · vento ${h.wind == null ? '—' : Math.round(h.wind) + ' km/h'} ${Forecast.windKind(pl.id, h.windDir)}` : 'carregando…'}</small></span>${h ? ratePill(Forecast.rate(pl.id, h)) : ''}</button>`; }).join('')}</section>
+    ${role === 'student' ? `<div class="spacer">${btn('Agendar uma aula', 'book-place:' + fcSpot, 'full', 'calendar')}</div>` : ''}
+  </aside></div>
+  ${fcSource(data)}` : `<div class="card empty"><div class="spinner"></div><h3>Consultando o mar…</h3><p>Buscando ondas, vento e maré.</p></div>`}</div>`;
+}
+
+// Resumo do mar na tela inicial.
+function seaNow() {
+  const hour = Math.min(23, new Date(Date.now() - 3 * 3600e3).getUTCHours());
+  return `<div class="sea-now">${state.places.map(pl => { ensureForecast(pl.id); const d = Forecast.peek(pl.id), h = d && Forecast.hourAt(d, today(), hour), r = Forecast.rate(pl.id, h), next = d && Forecast.tides(d, today()).find(t => t.minutes >= hour * 60); return `<button type="button" class="card sea-card" data-action="fc-open:${pl.id}|${today()}"><div class="row between"><strong>${esc(pl.short)}</strong>${ratePill(r)}</div>${h ? `<div class="sea-nums"><span><b>${m1(h.wave)}</b> m ${dirArrow(h.dir)}</span><span><b>${h.wind == null ? '—' : Math.round(h.wind)}</b> km/h ${dirArrow(h.windDir)}</span></div><small>${next ? `Próxima maré ${next.type} às ${next.time}` : Forecast.tideTrend(d, today(), hour) ? 'Maré ' + Forecast.tideTrend(d, today(), hour) : ''}</small>` : '<small class="muted">Carregando a previsão…</small>'}</button>`; }).join('')}</div>`;
+}
+
 /* ---------- Detalhe da aula (aluno) ---------- */
 function bookingDetail(id) {
   const b = getBooking(id), p = getPlace(b.place), o = getOrder(b.orderId), board = getBoard(b.board);
@@ -464,6 +596,11 @@ function bookingDetail(id) {
 }
 
 /* ---------- Criar reserva ---------- */
+function slotForecast(spot, date, time) {
+  ensureForecast(spot);
+  const data = Forecast.peek(spot), h = data && Forecast.hourAt(data, date, +time.slice(0, 2)), r = Forecast.rate(spot, h);
+  return h ? `<span class="slot-fc ${r.cls}"><i></i>${m1(h.wave)} m · ${r.label}</span>` : '';
+}
 function bookingError(placeId, date, time, people, ignore) {
   if (!navigator.onLine) return 'Conecte-se à internet para agendar.';
   const slot = slotsFor(placeId, date, ignore).find(s => s.time === time);
@@ -628,6 +765,8 @@ function adminHome() {
   <div class="admin-grid"><div>
     <div class="section-head"><h2>Pedidos para confirmar</h2><button type="button" class="text-btn" data-action="nav:requests">Ver todas as reservas ${icon('arrow')}</button></div>
     <div class="list-stack">${awaiting.length ? awaiting.map(requestRow).join('') : emptyState('check', 'Tudo confirmado.', 'Novos pedidos aparecem aqui e chegam como notificação no seu celular.')}</div>
+    <div class="section-head"><h2>Condições do mar agora</h2><button type="button" class="text-btn" data-action="nav:forecast">Previsão completa ${icon('arrow')}</button></div>
+    ${seaNow()}
     <div class="section-head"><h2>Hoje no mar</h2><button type="button" class="text-btn" data-action="nav:agenda">Abrir agenda ${icon('arrow')}</button></div>
     <div class="list-stack">${todays.length ? todays.map(b => lessonCard(b, true)).join('') : emptyState('sun', 'Nenhuma aula hoje.', 'Aproveite para cuidar do quiver ou pegar umas ondas.')}</div>
     ${upcoming.length ? `<div class="section-head"><h2>Próximas aulas confirmadas</h2></div><div class="list-stack">${upcoming.map(b => lessonCard(b, true)).join('')}</div>` : ''}
@@ -712,7 +851,7 @@ function agenda() {
       }).join('') || '<p class="muted">Sem horários definidos.</p>'}
     </div>`;
   };
-  return `<div class="page-content">${title('Agenda das aulas.', 'Veja quem vai para o mar, bloqueie horários e ajuste a maré do Farol.', btn('Novo agendamento', 'manual-booking', '', 'plus'))}
+  return `<div class="page-content">${title('Agenda das aulas.', 'Veja quem vai para o mar, bloqueie horários e ajuste a maré do Farol.', `<div class="row wrap">${btn('Previsão do mar', 'fc-open:farol|' + agendaDate, 'secondary', 'tide')}${btn('Novo agendamento', 'manual-booking', '', 'plus')}</div>`)}
     <div class="date-navigation"><strong style="font-size:12px">${fmt(agendaStart, { month: 'long', year: 'numeric' })}</strong><div class="row"><button type="button" class="btn secondary small" data-action="agenda-today">Hoje</button><button type="button" class="icon-btn" data-action="agenda-week:-7" aria-label="Semana anterior">${icon('left')}</button><button type="button" class="icon-btn" data-action="agenda-week:7" aria-label="Próxima semana">${icon('chevron')}</button></div></div>
     <div class="dates scroll">${days.map(x => { const n = state.bookings.filter(b => b.date === x && isLive(b)).length; return `<button type="button" class="day ${x === d ? 'active' : ''} ${weekday(x) === 2 ? 'off' : ''}" data-action="agenda-date:${x}"><small>${fmt(x, { weekday: 'short' }).replace('.', '')}</small><strong>${fmt(x, { day: '2-digit' })}</strong>${n ? `<em>${n}</em>` : ''}</button>`; }).join('')}</div>
     <h2 class="agenda-title">${fmt(d, { weekday: 'long', day: 'numeric', month: 'long' })}</h2>
@@ -978,6 +1117,11 @@ document.addEventListener('click', async e => {
     case 'bk-date': bk.date = id; bk.time = null; render(); break;
     case 'bk-time': bk.time = id; render(); if (matchMedia('(max-width:980px)').matches) $('.summary')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); break;
     case 'bk-submit': await submitBooking(); break;
+    case 'fc-spot': fcSpot = id; render(); break;
+    case 'fc-date': fcDate = id; render(); break;
+    case 'fc-open': close(); fcSpot = x; fcDate = y || today(); go('forecast'); break;
+    case 'fc-refresh': state.places.forEach(pl => { fcLoading[pl.id] = true; Forecast.load(pl.id, true).finally(() => { fcLoading[pl.id] = false; if (page === 'forecast') render(); }); }); toast('Atualizando a previsão…'); break;
+    case 'fc-book': reschedule = null; bk = { ...bk, place: x, plan: 'single', orderId: null, people: 1, date: y, time: z, start: y }; go('book'); break;
     case 'book-place': close(); bk = { ...bk, place: id, date: null, time: null }; go('book'); break;
     case 'stop-reschedule': reschedule = null; render(); break;
     case 'reschedule': { const b = getBooking(id); reschedule = id; close(); bk = { ...bk, place: b.place, date: null, time: null, start: today() }; go('book'); break; }
