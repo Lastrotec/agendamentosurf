@@ -1,5 +1,51 @@
-OUTSIDE SURF SCHOOL - ZIP VALIDADO
+OUTSIDE SURF SCHOOL · ROMÁRIO DE JESUS
+App de agendamento de aulas de surf (PWA) · Jaguaribe e Farol da Barra, Salvador
 
-Este arquivo ZIP contem os arquivos do site NA RAIZ.
-Para publicar: extraia o ZIP e envie todos os arquivos extraidos ao repositorio GitHub.
-Na Vercel, configure Output Directory como . (ponto), sem build.
+O QUE TEM
+- Aluno: escolhe a praia, o plano (avulsa, pacote 5 ou 10), aula individual ou em dupla
+  (Farol), data e horário; paga 50% de sinal (ou o total) por Pix ou cartão; remarca 1 vez.
+- Pix: QR Code e "copia e cola" reais (BR Code do Banco Central), com a chave celular
+  (71) 99220-8398 e o valor exato do pedido. A confirmação do pagamento é simulada.
+- Cartão: checkout simulado com validação. Cartões de teste:
+    4111 1111 1111 1111 -> aprovado
+    4000 0000 0000 0002 -> recusado
+- Instrutor (botão "Instrutor" no topo): painel com pedidos para confirmar, aulas do dia,
+  agenda por praia (bloqueio de horários/dias, horários do Farol pela maré), reservas,
+  presença, prancha de cada aula, alunos, financeiro (sinais, restantes, valores editáveis)
+  e configurações.
+- Quiver: o instrutor fotografa a prancha, o fundo é recortado automaticamente no aparelho
+  e ele escolhe quais pranchas ficam disponíveis para os alunos.
+- Notificações push para o instrutor a cada agendamento, pagamento ou remarcação,
+  com botão "Enviar push de teste" no Painel.
+
+REGRAS DA ESCOLA (já configuradas)
+- Jaguaribe: aulas individuais de 1h, das 6h às 12h. R$150 / 5 aulas R$700 (60 dias) /
+  10 aulas R$1.400 (90 dias).
+- Farol da Barra: até 2 pessoas por horário, horários conforme a maré. R$200 / 5 aulas R$900
+  (60 dias) / 10 aulas R$1.800 (90 dias).
+- Dias: segunda, quarta, quinta, sexta, sábado e domingo (sem aulas às terças).
+- Agendamento confirmado com 50% de sinal. Remarcação permitida 1 vez.
+
+PUBLICAR NA VERCEL
+1. Envie todos os arquivos ao GitHub e importe o repositório na Vercel
+   (Output Directory: . , sem build). A função api/push.js é publicada automaticamente.
+2. Gere as chaves do push:   node scripts/gerar-vapid.js
+3. Na Vercel, em Settings > Environment Variables, crie:
+     VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (ex.: mailto:seu-email@...)
+4. (Recomendado) Conecte um banco Upstash Redis / Vercel KV ao projeto. Ele cria
+   KV_REST_API_URL e KV_REST_API_TOKEN automaticamente. Assim o servidor guarda o
+   celular do instrutor e o push chega mesmo quando o aluno agenda de outro aparelho.
+5. Faça um novo deploy. No celular do instrutor: abra o site, instale na tela inicial
+   (no iPhone é obrigatório, iOS 16.4+), entre como Instrutor e toque em
+   "Ativar neste aparelho" e depois "Enviar push de teste".
+Sem as chaves VAPID o app funciona em "modo local": a notificação aparece só no
+aparelho onde as notificações foram ativadas.
+
+LIMITES DESTA VERSÃO (o que falta para produção)
+- Os dados (alunos, reservas, pagamentos, pranchas) ficam salvos no navegador. Para uso
+  real com vários alunos é preciso um banco de dados e login (aluno e instrutor).
+- Pagamentos simulados: para cobrar de verdade, integrar um gateway (Mercado Pago,
+  Asaas, Pagar.me etc.) com webhook de confirmação do Pix.
+- Os horários do Farol partem de uma estimativa de maré; o instrutor ajusta na Agenda.
+- Fotos das pranchas de exemplo: fotos reais de produtos usadas apenas para demonstração;
+  substitua pelas fotos do quiver do Romário.
