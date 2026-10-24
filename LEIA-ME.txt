@@ -1,0 +1,5 @@
+OUTSIDE SURF SCHOOL - ZIP VALIDADO
+
+Este arquivo ZIP contem os arquivos do site NA RAIZ.
+Para publicar: extraia o ZIP e envie todos os arquivos extraidos ao repositorio GitHub.
+Na Vercel, configure Output Directory como . (ponto), sem build.
