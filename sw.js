@@ -1,4 +1,4 @@
-const CACHE = 'outside-public-v8';
+const CACHE = 'outside-public-v9';
 const ASSETS = ['./', './index.html', './style.css', './fonts.css', './font-0.woff2', './font-1.woff2', './font-2.woff2', './font-3.woff2', './font-4.woff2', './font-5.woff2', './font-6.woff2', './font-7.woff2', './font-8.woff2', './app.js', './forecast.js', './pix.js', './push.js', './cutout.js', './vendor/qrcode.js', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './surf.jpg', './coast.jpg', './beach.jpg', './boards/longboard-amarela.png', './boards/longboard-azul.png', './boards/funboard-verde.png', './boards/evolutiva-cinza.png', './boards/egg-coral.png', './boards/fish-branca.png', './boards/shortboard-rosa.png'];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))); self.skipWaiting(); });
