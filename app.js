@@ -469,7 +469,7 @@ const hh = h => String(h).padStart(2, '0') + 'h';
 const m1 = v => v == null ? '—' : (Math.round(v * 10) / 10).toLocaleString('pt-BR', { minimumFractionDigits: 1 });
 const range = (vals, f) => { const a = f(Math.min(...vals)), b = f(Math.max(...vals)); return a === b ? String(a) : `${a}–${b}`; };
 const ratePill = r => r ? `<span class="rate ${r.cls}"><i></i>${r.label}</span>` : '';
-const fcSource = data => `<p class="legal-note fc-source">${icon('info')} ${data?.simulated ? 'Sem conexão com o serviço de previsão: exibindo uma <strong>simulação</strong>.' : `Dados Open-Meteo (modelos de ondas e vento) · atualizado ${data ? new Date(data.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''}. Maré modelada: confira a tábua da Marinha.`}</p>`;
+const fcSource = data => `<p class="legal-note fc-source">${icon('info')} ${data?.simulated ? 'Sem conexão com o serviço de previsão: exibindo uma <strong>simulação</strong>.' : `Dados Open-Meteo (modelos de ondas e vento) · atualizado ${data ? new Date(data.at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''}. Maré modelada (horários; alturas relativas ao nível médio). Conferir: <a class="link" href="https://surfguru.com.br/" target="_blank" rel="noopener">Surfguru</a> · <a class="link" href="https://www.marinha.mil.br/chm/tabuas-de-mare" target="_blank" rel="noopener">tábua da Marinha</a>`}</p>`;
 
 // Horários do Farol pela maré: usa a maré baixa da previsão quando disponível.
 function forecastTide(date) {

@@ -4,6 +4,8 @@
 // marcada como tal para o app continuar utilizável.
 const Forecast = (() => {
   const TZ = 'America/Bahia', TTL = 3600e3, DAYS = 8;
+  // cell_selection=sea: usa a célula de mar mais próxima do modelo (o pico fica colado
+  // na costa e a célula "terra" não tem ondas).
   // facing: direção para onde a praia "olha" (de onde vem o mar). Vento soprando
   // de terra para o mar (direção oposta) é terral, o melhor para surfar.
   const SPOTS = {
@@ -20,7 +22,7 @@ const Forecast = (() => {
 
   async function fetchReal(spot) {
     const common = `latitude=${spot.lat}&longitude=${spot.lon}&timezone=${encodeURIComponent(TZ)}&forecast_days=${DAYS}`;
-    const marineUrl = `https://marine-api.open-meteo.com/v1/marine?${common}&hourly=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period,swell_wave_direction,sea_level_height_msl`;
+    const marineUrl = `https://marine-api.open-meteo.com/v1/marine?${common}&hourly=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period,swell_wave_direction,sea_level_height_msl&cell_selection=sea`;
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?${common}&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,temperature_2m,weather_code&daily=sunrise,sunset&wind_speed_unit=kmh`;
     const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 12000);
     try {
