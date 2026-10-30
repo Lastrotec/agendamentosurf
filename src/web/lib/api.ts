@@ -22,7 +22,7 @@ export async function api<T = unknown>(path: string, init: { method?: string; bo
       signal: init.signal,
       headers: {
         Accept: 'application/json',
-        ...(method !== 'GET' ? { 'X-Requested-With': 'toni' } : {}),
+        ...(method !== 'GET' ? { 'X-Requested-With': 'outside' } : {}),
         ...(init.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       },
       body: init.body !== undefined ? JSON.stringify(init.body) : undefined,

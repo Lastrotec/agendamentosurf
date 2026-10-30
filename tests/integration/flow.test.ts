@@ -26,8 +26,11 @@ async function student(name = 'Camila Rocha') {
   return { c, phone };
 }
 
+let adminClient: Client | null = null;
 async function admin() {
-  const c = new Client(app, env);
+  // Uma sessão só: o login do painel tem limite de tentativas por e-mail.
+  if (adminClient) return adminClient;
+  const c = (adminClient = new Client(app, env));
   const r = await c.post('/api/admin/auth/login', ADMIN);
   expect(r.status).toBe(200);
   return c;
@@ -299,5 +302,25 @@ describe('painel', () => {
     const { c, phone } = await student('Apagar Eu');
     expect((await c.post('/api/me/delete')).status).toBe(200);
     expect((await new Client(app, env).post('/api/me/auth/login', { phone, password: 'onda-boa-77' })).status).toBe(401);
+  });
+});
+
+describe('listas do painel', () => {
+  it('aba "para conferir" traz o pedido com Pix informado e os dados do pedido', async () => {
+    const c = new Client(app, env);
+    await c.post('/api/me/auth/signup', { name: 'Lista Teste', phone: newPhone(), password: 'onda-boa-77', consent: true });
+    const r = await c.post('/api/me/bookings', { place: 'jaguaribe', plan: 'single', people: 1, date: nextClassDay(15), time: '06:00', idempotencyKey: idem() });
+    await c.post(`/api/me/orders/${r.json.order.id}/pix-sent`, { cents: 7500 });
+    const a = await admin();
+    for (const tab of ['pending', 'upcoming', 'past', 'cancelled', 'refunds']) {
+      const l = await a.get(`/api/admin/bookings?tab=${tab}`);
+      expect(l.status, `${tab} ${JSON.stringify(l.json)}`).toBe(200);
+    }
+    const l = await a.get('/api/admin/bookings?tab=pending');
+    expect(l.json.bookings.some((b: { id: string }) => b.id === r.json.booking.id)).toBe(true);
+    expect(l.json.orders[r.json.order.id].depositCents).toBe(7500);
+    for (const p of ['/api/admin/dashboard', '/api/admin/students', '/api/admin/finance', '/api/admin/system', '/api/admin/places', '/api/admin/settings', '/api/admin/boards', '/api/admin/inbox', `/api/admin/bookings/${r.json.booking.id}`, '/api/admin/audit']) {
+      expect((await a.get(p)).status, p).toBe(200);
+    }
   });
 });

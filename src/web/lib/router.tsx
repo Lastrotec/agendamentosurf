@@ -60,6 +60,6 @@ export function Link({ to, onClick, replace, ...rest }: AnchorHTMLAttributes<HTM
 
 export function useTitle(title: string) {
   useEffect(() => {
-    document.title = title ? `${title} · Toni Barbeiro` : 'Toni Barbeiro — Agende seu horário';
+    document.title = title ? `${title} · Outside Surf School` : 'Outside Surf School · Aulas de surf em Salvador';
   }, [title]);
 }

@@ -19,7 +19,7 @@ if (typeof window !== 'undefined') {
   });
   window.addEventListener('appinstalled', () => {
     deferred = null;
-    safeStorage.set('local', 'tb-installed', '1');
+    safeStorage.set('local', 'os-installed', '1');
     subs.forEach((s) => s());
   });
 }
@@ -98,10 +98,10 @@ export function useInstallPrompt() {
   };
 }
 
-const DISMISS_KEY = 'tb-install-dismissed-at';
+const DISMISS_KEY = 'os-install-dismissed-at';
 /** Sugestão de instalação: no máximo a cada 14 dias e nunca se já instalado. */
 export function shouldSuggestInstall(): boolean {
-  if (isStandalone() || safeStorage.get('local', 'tb-installed')) return false;
+  if (isStandalone() || safeStorage.get('local', 'os-installed')) return false;
   const at = Number(safeStorage.get('local', DISMISS_KEY) ?? 0);
   return Date.now() - at > 14 * 86400000;
 }

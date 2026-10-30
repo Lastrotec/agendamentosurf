@@ -263,7 +263,7 @@ adminRoutes.get('/bookings', async (c) => {
     refunds: `order_id in (select id from orders where refund_due_cents > 0) order by updated_at desc`,
   }[q.tab];
   const rows = await selectBookings(sql, where, []);
-  const orders = rows.length ? await selectOrders(sql, `id = any($1::uuid[])`, [[...new Set(rows.map((b) => b.order_id))]]) : [];
+  const orders = rows.length ? await selectOrders(sql, `id = any($1::uuid[])`, [pgArray([...new Set(rows.map((b) => b.order_id))])]) : [];
   return c.json({
     bookings: rows.map((b) => bookingView(b, s)),
     orders: Object.fromEntries(orders.map((o) => [o.id, orderView(o)])),
@@ -636,7 +636,8 @@ adminRoutes.get('/finance', async (c) => {
   const open = await selectOrders(sql, `(status = 'active' and paid_cents < total_cents) or refund_due_cents > 0 order by created_at desc limit 200`, []);
   const names = await studentNames(c, [...new Set(open.map((o) => o.student_id))]);
   if (q.format === 'csv') {
-    const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    // Aspas escapadas e fórmulas neutralizadas (=, +, -, @ no início viram texto no Excel).
+    const esc = (v: string) => `"${(/^[=+\-@\t]/.test(v) ? "'" + v : v).replace(/"/g, '""')}"`;
     const lines = [['data', 'aluno', 'pedido', 'plano', 'local', 'tipo', 'forma', 'valor'].join(';')];
     for (const r of rows) {
       lines.push([new Date(r.created_at).toLocaleString('pt-BR', { timeZone: 'America/Bahia' }), r.student, r.code, PLANS[r.plan as keyof typeof PLANS]?.label ?? r.plan, r.place, r.kind, r.method, (r.amount_cents / 100).toFixed(2).replace('.', ',')].map((x) => esc(String(x))).join(';'));

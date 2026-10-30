@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6efe4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Outside Surf">
+<meta name="description" content="Seu próximo encontro com o mar. Aulas de surf com Romário de Jesus em Jaguaribe e no Farol da Barra, Salvador. Agende e pague o sinal pelo Pix.">
+<meta property="og:title" content="Outside Surf School · Aulas de surf em Salvador">
+<meta property="og:description" content="Agende sua aula em Jaguaribe ou no Farol da Barra.">
+<meta property="og:image" content="/icons/og.png">
+<meta property="og:url" content="/">
+<meta property="og:type" content="website">
+<title>Outside Surf School · Aulas de surf em Salvador</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="preload" href="/fonts/font-8.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+html,body{margin:0;background:#f6efe4}
+html.splashing,html.splashing body{overflow:hidden}
+#splash{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 80% at 50% 30%,#fffaf3,#f3ece0);overflow:hidden;cursor:pointer;contain:strict;transition:opacity .8s cubic-bezier(.4,0,.2,1)}
+#splash.out{opacity:0;pointer-events:none}
+#splash *{animation-play-state:paused}#splash.go *{animation-play-state:running}
+.sp-logo{position:absolute;left:50%;top:44%;z-index:3;width:max-content;transform:translate3d(-50%,-50%,0);will-change:transform,opacity;animation:spLogo 1s cubic-bezier(.22,1,.36,1) both}
+.sp-mark{display:flex;align-items:center;color:#1F4E96}.sp-mark.white{position:absolute;inset:0;color:#fff;opacity:0;will-change:opacity;animation:spFade .7s ease-in-out 1.4s forwards}
+.sp-mark.orange{will-change:opacity;animation:spFadeOut .7s ease-in-out 1.4s forwards}
+.sp-logo svg{width:230px;height:auto}
+.sp-name{font:800 46px/1 'Manrope',sans-serif;letter-spacing:-2.6px}.sp-name small{display:block;font:700 10px 'DM Sans',sans-serif;letter-spacing:5px;margin-top:8px}
+.sp-sea{position:absolute;inset:0;z-index:2;transform:translate3d(0,108%,0);will-change:transform;animation:spRise 2.3s cubic-bezier(.45,.02,.2,1) .45s forwards}
+.sp-layer{position:absolute;left:0;right:0;top:0;height:calc(100% + 260px);will-change:transform;animation:spBob 2.6s ease-in-out infinite alternate}
+.sp-layer svg{display:block;width:200%;height:120px;will-change:transform;animation:spFlow 3.4s linear infinite;backface-visibility:hidden}
+.sp-fill{height:100%;margin-top:-1px}
+.sp-layer.l3{top:-80px;animation-duration:3.1s}.sp-layer.l3 svg{animation-duration:6s;animation-direction:reverse}
+.sp-layer.l2{top:-36px;animation-duration:2.8s;animation-delay:-.6s}.sp-layer.l2 svg{animation-duration:4.4s}
+.sp-layer.l1{top:12px;animation-delay:-1.2s}.sp-layer.l1 svg{animation-duration:2.8s;height:160px}
+.sp-bubbles{position:absolute;left:0;right:0;top:20px;height:120px}
+.sp-bubbles i{position:absolute;top:40px;border-radius:50%;background:#fff;opacity:0;box-shadow:0 0 6px #ffffffaa;will-change:transform,opacity;animation:spBubble 1.6s cubic-bezier(.2,.7,.3,1) both}
+@keyframes spLogo{from{opacity:0;transform:translate3d(-50%,-40%,0) scale(.94)}to{opacity:1;transform:translate3d(-50%,-50%,0) scale(1)}}
+@keyframes spFade{to{opacity:1}}@keyframes spFadeOut{to{opacity:0}}
+@keyframes spRise{from{transform:translate3d(0,108%,0)}to{transform:translate3d(0,-14%,0)}}
+@keyframes spBob{from{transform:translate3d(0,-6px,0)}to{transform:translate3d(0,8px,0)}}
+@keyframes spFlow{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+@keyframes spBubble{0%{opacity:0;transform:translate3d(0,0,0) scale(.4)}25%{opacity:.95}100%{opacity:0;transform:translate3d(var(--drift),-80px,0) scale(1.15)}}
+#splash.reduce .sp-sea{display:none}#splash.reduce .sp-logo,#splash.reduce .sp-mark{animation:none}
+@media(max-width:700px){.sp-logo svg{width:190px}}
+</style>
+</head>
+<body>
+<script src="/splash.js"></script>
+<div id="root"></div>
+<script type="module" src="/src/web/main.tsx"></script>
+</body>
+</html>

@@ -1,10 +1,10 @@
-/* Service Worker da Toni Barbeiro.
+/* Service Worker da Outside Surf School.
    - Nunca armazena respostas da API (agenda, dados pessoais, painel) — disponibilidade é sempre ao vivo.
    - Arquivos com hash (/assets/*) ficam em cache; navegação é "rede primeiro" com página offline honesta.
    - __VERSION__ é substituído no build; uma nova versão aparece como "Atualizar" no app. */
 const VERSION = '__VERSION__';
-const STATIC_CACHE = `tb-static-${VERSION}`;
-const PRECACHE = ['/offline.html', '/brand/logo-256.png', '/icons/icon-192.png'];
+const STATIC_CACHE = `os-static-${VERSION}`;
+const PRECACHE = ['/offline.html', '/brand/logo.svg', '/icons/icon-192.png', '/splash.js'];
 
 self.addEventListener('install', (event) => {
   // Cada arquivo é opcional (ex.: logo.png ainda não enviado) — uma falha não impede a instalação.
@@ -15,7 +15,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('tb-') && k !== STATIC_CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('os-') && k !== STATIC_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
@@ -37,7 +37,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname.startsWith('/assets/')) {
+  // Arquivos com hash, fontes e fotos do banco (/img/<hash>) nunca mudam: cache primeiro.
+  if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/fonts/') || /^\/img\/[a-f0-9]{24}$/.test(url.pathname)) {
     event.respondWith(
       caches.open(STATIC_CACHE).then(async (cache) => {
         const hit = await cache.match(req);
@@ -57,7 +58,7 @@ self.addEventListener('fetch', (event) => {
 
 // Notificações push (lembretes). O conteúdo chega criptografado pelo serviço de push do navegador.
 self.addEventListener('push', (event) => {
-  let msg = { title: 'Toni Barbeiro', body: '', url: '/' };
+  let msg = { title: 'Outside Surf School', body: '', url: '/' };
   try {
     msg = { ...msg, ...(event.data ? event.data.json() : {}) };
   } catch {
