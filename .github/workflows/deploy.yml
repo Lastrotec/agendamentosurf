@@ -68,6 +68,18 @@ jobs:
           sed -i "s#// \"hyperdrive\": \[{ \"binding\": \"HYPERDRIVE\", \"id\": \"COLE_O_ID_AQUI\" }\],#\"hyperdrive\": [{ \"binding\": \"HYPERDRIVE\", \"id\": \"$ID\" }],#" wrangler.jsonc
           grep -q "\"id\": \"$ID\"" wrangler.jsonc
       - run: npm run build
+      # Conta nova na Cloudflare: registra o endereço <nome>.workers.dev na primeira vez (uma vez por conta).
+      - name: Subdomínio workers.dev
+        run: |
+          ACC="${CLOUDFLARE_ACCOUNT_ID:-$(curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" https://api.cloudflare.com/client/v4/accounts | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).result[0]?.id??""))')}"
+          CUR=$(curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$ACC/workers/subdomain" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).result?.subdomain??"")}catch{console.log("")}})')
+          if [ -n "$CUR" ]; then echo "Subdomínio: $CUR.workers.dev"; exit 0; fi
+          for NAME in outsidesurf outside-surf-school outsidesurf-ssa; do
+            R=$(curl -sS -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" --data "{\"subdomain\":\"$NAME\"}" "https://api.cloudflare.com/client/v4/accounts/$ACC/workers/subdomain")
+            if echo "$R" | grep -q '"success":true'; then echo "Registrado: $NAME.workers.dev"; exit 0; fi
+            echo "$R" | head -c 300; echo
+          done
+          echo "::error::Não foi possível registrar o subdomínio workers.dev. Registre em dash.cloudflare.com → Workers & Pages."; exit 1
       - name: Publicar Worker
         run: npx wrangler deploy --message "deploy ${GITHUB_SHA::7}"
       # Segredos do Worker: usa os do GitHub quando existirem; senão gera na primeira publicação
