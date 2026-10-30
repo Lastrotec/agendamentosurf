@@ -56,17 +56,8 @@ jobs:
       # Hyperdrive: o Worker precisa dele para falar com o Supabase. Cria na primeira vez e reaproveita depois.
       - name: Hyperdrive
         env:
-          SUPABASE_POOLER_URL: ${{ secrets.SUPABASE_POOLER_URL }}
-          SUPABASE_DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
-        run: |
-          ID=$(npx wrangler hyperdrive list 2>/dev/null | grep -E 'outside-db' | grep -oE '[0-9a-f]{32}' | head -1 || true)
-          if [ -z "$ID" ]; then
-            npx wrangler hyperdrive create outside-db --connection-string="${SUPABASE_POOLER_URL:-$SUPABASE_DIRECT_URL}" | tee /tmp/hd.txt
-            ID=$(grep -oE '[0-9a-f]{32}' /tmp/hd.txt | head -1)
-          fi
-          [ -n "$ID" ] || { echo "::error::Não foi possível criar/encontrar o Hyperdrive (o token precisa de Account → Hyperdrive → Edit)"; exit 1; }
-          sed -i "s#// \"hyperdrive\": \[{ \"binding\": \"HYPERDRIVE\", \"id\": \"COLE_O_ID_AQUI\" }\],#\"hyperdrive\": [{ \"binding\": \"HYPERDRIVE\", \"id\": \"$ID\" }],#" wrangler.jsonc
-          grep -q "\"id\": \"$ID\"" wrangler.jsonc
+          DB_URL: ${{ secrets.SUPABASE_POOLER_URL || secrets.SUPABASE_DIRECT_URL }}
+        run: node scripts/hyperdrive.mjs
       - run: npm run build
       # Conta nova na Cloudflare: registra o endereço <nome>.workers.dev na primeira vez (uma vez por conta).
       - name: Subdomínio workers.dev
