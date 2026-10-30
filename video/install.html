@@ -1,0 +1,124 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}body{margin:0;width:540px;height:960px;overflow:hidden;background:radial-gradient(120% 70% at 50% 0%,#fff7d6,#f7ec86 55%,#efe07a);font-family:'DM Sans',system-ui,sans-serif;color:#1f4e96}
+.top{position:absolute;top:34px;left:0;right:0;text-align:center}
+.top b{display:block;font:800 30px/1.1 system-ui;letter-spacing:-1px}
+.top small{display:block;margin-top:6px;font:600 15px system-ui;color:#3d5f99;letter-spacing:.5px}
+.phone{position:absolute;left:105px;top:128px;width:330px;height:690px;border-radius:46px;background:#111;padding:11px;box-shadow:0 30px 70px #1f4e9655}
+.screen{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#f7f8f5}
+.layer{position:absolute;inset:0;opacity:0;transition:opacity .45s,transform .45s}
+.layer.on{opacity:1}
+.layer img.shot{width:100%;display:block}
+.status{height:26px;background:#f7f8f5;font:600 11px system-ui;color:#222;display:flex;justify-content:space-between;align-items:center;padding:0 22px}
+.addr{height:40px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid #ddd}
+.addr .url{flex:1;background:#eef1f4;border-radius:20px;height:28px;font:500 12px system-ui;color:#333;display:flex;align-items:center;padding:0 12px}
+.dots{font:900 18px system-ui;color:#333;width:22px;text-align:center}
+.page{position:absolute;top:66px;left:0;right:0;bottom:0;overflow:hidden}
+.ios .page{top:26px;bottom:76px}
+.iosbar{position:absolute;left:0;right:0;bottom:0;height:76px;background:#f2f2f6;border-top:1px solid #d4d4d8;padding:8px 14px}
+.iosbar .url{background:#e3e3e8;border-radius:12px;height:30px;font:500 12px system-ui;color:#333;display:flex;align-items:center;justify-content:center}
+.iosbar .tools{display:flex;justify-content:space-between;padding:6px 18px 0;font:500 20px system-ui;color:#0a7aff}
+.menu{position:absolute;top:30px;right:6px;width:200px;background:#fff;border-radius:12px;box-shadow:0 10px 30px #0004;padding:6px 0;transform:scale(.9);transform-origin:top right}
+.menu.on{transform:scale(1)}
+.menu div{padding:11px 16px;font:500 13px system-ui;color:#222}
+.menu .hl{background:#e8f0fe;color:#174ea6;font-weight:700}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#f2f2f6;border-radius:18px 18px 0 0;padding:14px;transform:translateY(100%)}
+.sheet.on{transform:translateY(0)}
+.sheet .row{background:#fff;border-radius:10px;margin-top:8px}
+.sheet .row div{padding:12px 14px;font:500 13px system-ui;color:#111;border-bottom:1px solid #e5e5ea;display:flex;justify-content:space-between}
+.sheet .row div:last-child{border:0}
+.sheet .hl{background:#dfeaff}
+.dialog{position:absolute;left:18px;right:18px;top:200px;background:#fff;border-radius:18px;padding:18px;box-shadow:0 20px 50px #0005;transform:scale(.92)}
+.dialog,.perm{opacity:0;transition:opacity .35s,transform .35s}.dialog.on{transform:scale(1);opacity:1}.perm.on{opacity:1}.sheet{transition:transform .45s}.menu{transition:opacity .3s,transform .3s}
+.dialog h4{margin:0 0 12px;font:700 16px system-ui;color:#111}
+.dialog .app{display:flex;gap:12px;align-items:center;font:600 14px system-ui;color:#111}
+.dialog .app img{width:46px;height:46px;border-radius:11px}
+.dialog .btns{display:flex;justify-content:flex-end;gap:18px;margin-top:18px;font:700 14px system-ui}
+.dialog .btns span{color:#555}.dialog .btns b{color:#1a73e8}
+.ios .dialog .btns b{color:#0a7aff}
+.home{background:linear-gradient(160deg,#1f8f8a,#1f4e96 60%,#0b2c5e)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px;padding:60px 18px}
+.grid i{display:block;width:56px;height:56px;border-radius:14px;background:#ffffff33;margin:0 auto}
+.grid em{display:block;text-align:center;font:500 10px system-ui;color:#fff;margin-top:5px;font-style:normal}
+.grid .ours img{width:56px;height:56px;border-radius:14px;display:block;margin:0 auto;box-shadow:0 4px 12px #0005}
+.grid .ours{opacity:0;transform:scale(.4);transition:.5s}
+.grid .ours.on{opacity:1;transform:scale(1)}
+.perm{position:absolute;left:26px;right:26px;top:230px;background:#f4f4f7ee;border-radius:16px;text-align:center;box-shadow:0 20px 50px #0005;overflow:hidden;transform:scale(.92)}
+.perm.on{transform:scale(1)}
+.perm p{margin:0;padding:16px 16px 12px;font:600 13px/1.35 system-ui;color:#111}
+.perm div{display:flex;border-top:1px solid #ccc}.perm div span{flex:1;padding:12px;font:500 14px system-ui;color:#0a7aff}.perm div span+span{border-left:1px solid #ccc;font-weight:700}
+.tap{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:#ff571c66;border:3px solid #ff571c;opacity:0;pointer-events:none;z-index:9}
+.tap.go{animation:tap .9s ease-out}
+@keyframes tap{0%{opacity:0;transform:scale(1.8)}25%{opacity:1;transform:scale(1)}60%{opacity:1;transform:scale(.85)}100%{opacity:0;transform:scale(1.3)}}
+.cap{position:absolute;left:30px;right:30px;bottom:44px;min-height:84px;background:#1f4e96;color:#fff;border-radius:20px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 12px 30px #1f4e9644}
+.cap b{flex:none;width:38px;height:38px;border-radius:50%;background:#f7ec86;color:#1f4e96;display:grid;place-items:center;font:800 18px system-ui}
+.cap span{font:700 17px/1.3 system-ui}
+.ok{position:absolute;inset:0;display:grid;place-items:center;background:#0008;opacity:0;transition:.4s}
+.ok.on{opacity:1}.ok div{background:#fff;border-radius:18px;padding:18px 22px;font:800 16px system-ui;color:#1f4e96;text-align:center}
+</style></head><body>
+<div class="top"><b id="title"></b><small id="sub"></small></div>
+<div class="phone"><div class="screen" id="screen"></div></div>
+<div class="cap"><b id="n">1</b><span id="cap"></span></div>
+<div class="tap" id="tap"></div>
+<script>
+const os = location.hash.slice(1) || 'android';
+const S = document.getElementById('screen');
+const ios = os === 'iphone';
+S.className = 'screen ' + (ios ? 'ios' : 'and');
+document.getElementById('title').textContent = ios ? 'Instale no iPhone' : 'Instale no Android';
+document.getElementById('sub').textContent = ios ? 'Pelo Safari · 3 toques' : 'Pelo Chrome · 1 toque';
+const grid = () => `<div class="grid">${Array.from({length:11},(_,i)=>`<span><i></i><em>${['Fotos','Mapas','Relógio','Clima','Câmera','Notas','Música','Banco','Agenda','Ajustes','Mensagens'][i]}</em></span>`).join('')}<span class="ours" id="ours"><img src="icon.png"><em>Outside Surf</em></span></div>`;
+S.innerHTML = ios ? `
+  <div class="layer on" id="site"><div class="status"><span>9:41</span><span>●●● 100%</span></div><div class="page"><img class="shot" src="iphone-site.jpg"></div>
+    <div class="iosbar"><div class="url">🔒 outsidesurf.com.br</div><div class="tools"><span>‹</span><span>›</span><span id="share">⬆︎</span><span>📖</span><span>⧉</span></div></div>
+    <div class="sheet" id="sheet"><div style="font:700 13px system-ui;color:#111;text-align:center">Outside Surf School</div><div class="row"><div>Copiar <span>⧉</span></div><div>Adicionar aos Favoritos <span>☆</span></div><div id="addrow">Adicionar à Tela de Início <span>⊞</span></div><div>Buscar na Página <span>🔍</span></div></div></div>
+    <div class="dialog" id="dialog"><h4>Adicionar à Tela de Início</h4><div class="app"><img src="icon.png"><div>Outside Surf<br><small style="color:#777;font-weight:400">outsidesurf.com.br</small></div></div><div class="btns"><span>Cancelar</span><b id="addbtn">Adicionar</b></div></div>
+  </div>
+  <div class="layer home" id="home">${grid()}</div>
+  <div class="layer" id="app"><div class="status"></div><img class="shot" src="iphone-app.jpg"><div class="perm" id="perm"><p>“Outside Surf” deseja enviar notificações</p><div><span>Não Permitir</span><span id="allow">Permitir</span></div></div></div>`
+: `
+  <div class="layer on" id="site"><div class="status"><span>9:41</span><span>▲ 100%</span></div><div class="addr"><div class="url">🔒 outsidesurf.com.br</div><div class="dots" id="dots">⋮</div></div><div class="page"><img class="shot" src="android-site.jpg" style="margin-top:-2px"></div>
+    <div class="menu" id="menu" style="opacity:0"><div>Nova guia</div><div>Histórico</div><div>Downloads</div><div class="hl" id="inst">⤓ Instalar app</div><div>Compartilhar…</div><div>Configurações</div></div>
+    <div class="dialog" id="dialog"><h4>Instalar app?</h4><div class="app"><img src="icon.png"><div>Outside Surf<br><small style="color:#777;font-weight:400">outsidesurf.com.br</small></div></div><div class="btns"><span>Cancelar</span><b id="addbtn">Instalar</b></div></div>
+  </div>
+  <div class="layer home" id="home">${grid()}</div>
+  <div class="layer" id="app"><div class="status"></div><img class="shot" src="android-app.jpg"><div class="perm" id="perm"><p>Permitir que Outside Surf envie notificações?</p><div><span>Não permitir</span><span id="allow">Permitir</span></div></div></div>`;
+const $ = (id) => document.getElementById(id);
+const on = (id, v = true) => $(id).classList.toggle('on', v);
+function tap(id) {
+  const r = $(id).getBoundingClientRect(), t = $('tap');
+  t.style.left = r.left + r.width / 2 + 'px'; t.style.top = r.top + r.height / 2 + 'px';
+  t.classList.remove('go'); void t.offsetWidth; t.classList.add('go');
+}
+function cap(n, text) { $('n').textContent = n; $('cap').textContent = text; }
+const steps = ios ? [
+  [0, () => cap(1, 'Abra o site da Outside no Safari')],
+  [1800, () => (cap(1, 'Toque em Compartilhar, na barra de baixo'), tap('share'))],
+  [2700, () => on('sheet')],
+  [4200, () => (cap(2, 'Toque em “Adicionar à Tela de Início”'), tap('addrow'), $('addrow').classList.add('hl'))],
+  [5200, () => (on('sheet', false), on('dialog'))],
+  [6500, () => (cap(3, 'Toque em “Adicionar”'), tap('addbtn'))],
+  [7500, () => (on('dialog', false), on('site', false), on('home'))],
+  [8100, () => (on('ours'), cap(3, 'Pronto! O ícone da Outside está na tela inicial'))],
+  [10000, () => (cap(4, 'Abra pelo ícone e ative as notificações'), tap('ours'))],
+  [10900, () => (on('home', false), on('app'))],
+  [11700, () => on('perm')],
+  [13000, () => (tap('allow'))],
+  [13800, () => (on('perm', false), cap('✓', 'Lembretes das aulas ativados. Bora pro mar!'))],
+] : [
+  [0, () => cap(1, 'Abra o site da Outside no Chrome')],
+  [1700, () => (cap(1, 'Toque no menu ⋮ no canto de cima'), tap('dots'))],
+  [2500, () => ($('menu').style.opacity = 1, on('menu'))],
+  [3900, () => (cap(2, 'Toque em “Instalar app”'), tap('inst'))],
+  [4800, () => ($('menu').style.opacity = 0, on('dialog'))],
+  [6100, () => (cap(2, 'Confirme em “Instalar”'), tap('addbtn'))],
+  [7100, () => (on('dialog', false), on('site', false), on('home'))],
+  [7700, () => (on('ours'), cap(3, 'Pronto! O ícone da Outside está na tela inicial'))],
+  [9500, () => (cap(4, 'Abra pelo ícone e ative as notificações'), tap('ours'))],
+  [10400, () => (on('home', false), on('app'))],
+  [11200, () => on('perm')],
+  [12500, () => tap('allow')],
+  [13300, () => (on('perm', false), cap('✓', 'Lembretes das aulas ativados. Bora pro mar!'))],
+];
+window.TOTAL = ios ? 16000 : 15500;
+window.start = () => steps.forEach(([t, f]) => setTimeout(f, t));
+</script></body></html>

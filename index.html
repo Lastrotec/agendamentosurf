@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,23 +7,28 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="description" content="Seu próximo encontro com o mar. Aulas de surf com Romário de Jesus em Jaguaribe e no Farol da Barra, Salvador. Agende e pague o sinal por Pix ou cartão.">
+<meta name="apple-mobile-web-app-title" content="Outside Surf">
+<meta name="description" content="Seu próximo encontro com o mar. Aulas de surf com Romário de Jesus em Jaguaribe e no Farol da Barra, Salvador. Agende e pague o sinal pelo Pix.">
+<meta property="og:title" content="Outside Surf School · Aulas de surf em Salvador">
+<meta property="og:description" content="Agende sua aula em Jaguaribe ou no Farol da Barra.">
+<meta property="og:image" content="/icons/og.png">
+<meta property="og:url" content="/">
+<meta property="og:type" content="website">
 <title>Outside Surf School · Aulas de surf em Salvador</title>
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="preload" href="font-8.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="preload" href="/fonts/font-8.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 html,body{margin:0;background:#f6efe4}
-html:not(.css-ready) #app{visibility:hidden}
 html.splashing,html.splashing body{overflow:hidden}
 #splash{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 80% at 50% 30%,#fffaf3,#f3ece0);overflow:hidden;cursor:pointer;contain:strict;transition:opacity .8s cubic-bezier(.4,0,.2,1)}
 #splash.out{opacity:0;pointer-events:none}
 #splash *{animation-play-state:paused}#splash.go *{animation-play-state:running}
 .sp-logo{position:absolute;left:50%;top:44%;z-index:3;width:max-content;transform:translate3d(-50%,-50%,0);will-change:transform,opacity;animation:spLogo 1s cubic-bezier(.22,1,.36,1) both}
-.sp-mark{display:flex;align-items:center;gap:12px;color:#ff571c}.sp-mark.white{position:absolute;inset:0;color:#fff;opacity:0;will-change:opacity;animation:spFade .7s ease-in-out 1.4s forwards}
+.sp-mark{display:flex;align-items:center;color:#1F4E96}.sp-mark.white{position:absolute;inset:0;color:#fff;opacity:0;will-change:opacity;animation:spFade .7s ease-in-out 1.4s forwards}
 .sp-mark.orange{will-change:opacity;animation:spFadeOut .7s ease-in-out 1.4s forwards}
-.sp-logo svg{width:58px;height:68px;fill:currentColor}
+.sp-logo svg{width:230px;height:auto}
 .sp-name{font:800 46px/1 'Manrope',sans-serif;letter-spacing:-2.6px}.sp-name small{display:block;font:700 10px 'DM Sans',sans-serif;letter-spacing:5px;margin-top:8px}
 .sp-sea{position:absolute;inset:0;z-index:2;transform:translate3d(0,108%,0);will-change:transform;animation:spRise 2.3s cubic-bezier(.45,.02,.2,1) .45s forwards}
 .sp-layer{position:absolute;left:0;right:0;top:0;height:calc(100% + 260px);will-change:transform;animation:spBob 2.6s ease-in-out infinite alternate}
@@ -41,89 +46,12 @@ html.splashing,html.splashing body{overflow:hidden}
 @keyframes spFlow{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 @keyframes spBubble{0%{opacity:0;transform:translate3d(0,0,0) scale(.4)}25%{opacity:.95}100%{opacity:0;transform:translate3d(var(--drift),-80px,0) scale(1.15)}}
 #splash.reduce .sp-sea{display:none}#splash.reduce .sp-logo,#splash.reduce .sp-mark{animation:none}
-@media(max-width:700px){.sp-name{font-size:38px}.sp-logo svg{width:48px;height:56px}}
+@media(max-width:700px){.sp-logo svg{width:190px}}
 </style>
-<!-- CSS do app carrega sem bloquear a primeira pintura (a abertura aparece na hora). -->
-<link rel="stylesheet" href="style.css" media="print" onload="this.media='all';document.documentElement.classList.add('css-ready')">
-<noscript><link rel="stylesheet" href="style.css"><style>#app{visibility:visible!important}</style></noscript>
 </head>
 <body>
-<script>
-'use strict';
-// Abertura animada: uma onda com espuma sobe e cobre a logo da Outside.
-// Aparece uma vez por sessão; toque/clique pula a animação.
-(() => {
-  let seen = null;
-  try { seen = sessionStorage.getItem('outside-splash'); sessionStorage.setItem('outside-splash', '1'); } catch { /* sem storage */ }
-  if (seen) return;
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // Gera um pseudo-aleatório estável para a espuma ficar sempre igual.
-  let s = 7;
-  const rand = () => (s = (s * 9301 + 49297) % 233280) / 233280;
-
-  // Crista com "bolhas": arcos sucessivos sobre uma senoide. O desenho se repete
-  // duas vezes na largura para o deslize horizontal ficar contínuo.
-  function crest(width, base, amp, bubbly) {
-    const half = width / 2, pts = [];
-    for (let x = 0; x <= half; x += bubbly ? 16 + rand() * 18 : 60) pts.push(x);
-    pts[pts.length - 1] = half;
-    const y = x => base + Math.sin(x / half * Math.PI * 4) * amp + (bubbly && x > 0 && x < half ? -rand() * 7 : 0);
-    const ys = pts.map(y);
-    let d = `M0 ${ys[0].toFixed(1)}`;
-    for (const off of [0, half]) {
-      for (let i = 1; i < pts.length; i++) {
-        const x = pts[i] + off, py = ys[i];
-        if (bubbly) { const r = (pts[i] - pts[i - 1]) * 0.62; d += ` A${r.toFixed(1)} ${r.toFixed(1)} 0 0 1 ${x.toFixed(1)} ${py.toFixed(1)}`; }
-        else { const cx = (pts[i - 1] + pts[i]) / 2 + off; d += ` Q${cx.toFixed(1)} ${(py - amp * 0.9).toFixed(1)} ${x.toFixed(1)} ${py.toFixed(1)}`; }
-      }
-    }
-    return d + ` V200 H0 Z`;
-  }
-
-  const layer = (cls, color, base, amp, foam) => `<div class="sp-layer ${cls}"><svg viewBox="0 0 2880 200" preserveAspectRatio="none" aria-hidden="true">
-      ${foam ? `<path d="${crest(2880, base - 30, amp * 1.2, true)}" fill="#fff" opacity=".55"/><path d="${crest(2880, base - 14, amp, true)}" fill="#fff" opacity=".97"/><path d="${crest(2880, base + 6, amp * 0.8, true)}" fill="#dff6f2"/>` : ''}
-      <path d="${crest(2880, base + (foam ? 26 : 0), amp, false)}" fill="${color}"/></svg><div class="sp-fill" style="background:${color}"></div></div>`;
-
-  const bubbles = Array.from({ length: 26 }, (_, i) => {
-    const size = 4 + rand() * 12;
-    return `<i style="left:${(rand() * 100).toFixed(1)}%;width:${size.toFixed(0)}px;height:${size.toFixed(0)}px;animation-delay:${(1.5 + rand() * 0.9).toFixed(2)}s;--drift:${(rand() * 40 - 20).toFixed(0)}px"></i>`;
-  }).join('');
-
-  const el = document.createElement('div');
-  el.id = 'splash';
-  el.setAttribute('aria-hidden', 'true');
-  el.className = reduce ? 'reduce' : '';
-  el.innerHTML = `
-    <div class="sp-logo"><div class="sp-mark orange"><svg viewBox="0 0 60 70"><path d="M3 40c12-2 9-21 22-29 9-6 19-6 28-1-18 4-17 17-12 24 3 4 7 5 13 6v4H3z"/><path d="M3 54q5-8 10 0t10 0 10 0 10 0 10 0" fill="none" stroke="currentColor" stroke-width="2.4"/></svg><div class="sp-name">outside<small>SURF SCHOOL</small></div></div><div class="sp-mark white"><svg viewBox="0 0 60 70"><path d="M3 40c12-2 9-21 22-29 9-6 19-6 28-1-18 4-17 17-12 24 3 4 7 5 13 6v4H3z"/><path d="M3 54q5-8 10 0t10 0 10 0 10 0 10 0" fill="none" stroke="currentColor" stroke-width="2.4"/></svg><div class="sp-name">outside<small>SURF SCHOOL</small></div></div></div>
-    <div class="sp-sea">
-      ${layer('l3', '#0b3f45', 70, 18, false)}
-      ${layer('l2', '#0f5e5b', 80, 14, false)}
-      ${layer('l1', '#1f8f8a', 90, 12, true)}
-      <div class="sp-bubbles">${bubbles}</div>
-    </div>`;
-  document.body.appendChild(el);
-  document.documentElement.classList.add('splashing');
-  // Começa só depois do primeiro quadro pintado, para não "pular" o início.
-  // A barra do navegador acompanha a cena: creme, depois a cor do mar quando a onda chega ao topo.
-  const bar = document.querySelector('meta[name="theme-color"]');
-  const setBar = c => { if (bar) bar.content = c; };
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    el.classList.add('go');
-    if (!reduce) setTimeout(() => { if (!el.classList.contains('out')) setBar('#1f8f8a'); }, 2150);
-  }));
-
-  const finish = () => {
-    if (el.classList.contains('out')) return;
-    el.classList.add('out');
-    document.documentElement.classList.remove('splashing');
-    setTimeout(() => { setBar(document.body.classList.contains('dark') ? '#101210' : '#f7f8f5'); el.remove(); }, 850);
-  };
-  el.addEventListener('click', finish);
-  setTimeout(finish, reduce ? 700 : 3100);
-})();
-</script>
-<div id="app"></div><dialog id="modal"></dialog><div id="toast" role="status" aria-live="polite"></div>
-<script src="vendor/qrcode.js" defer></script><script src="pix.js" defer></script><script src="push.js" defer></script><script src="forecast.js" defer></script><script src="cutout.js" defer></script><script src="app.js" defer></script>
+<script src="/splash.js"></script>
+<div id="root"></div>
+<script type="module" src="/src/web/main.tsx"></script>
 </body>
 </html>
