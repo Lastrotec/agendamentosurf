@@ -16,5 +16,5 @@ jobs:
           DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
           APP_URL: ${{ vars.APP_URL }}
         run: |
-          if [ -n "$APP_URL" ]; then curl -fsS "$APP_URL/health/db" && echo; fi
+          curl -fsS "${APP_URL:-https://outside-surf.outsidesurf.workers.dev}/health/db" && echo
           if [ -n "$DATABASE_URL" ]; then psql "$DATABASE_URL" -tAc "select note from health_check where id = 1"; fi

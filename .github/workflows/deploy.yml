@@ -122,7 +122,11 @@ jobs:
         env:
           APP_URL: ${{ vars.APP_URL }}
         run: |
-          if [ -z "$APP_URL" ]; then echo "::warning::Defina a variável APP_URL para validar o deploy"; exit 0; fi
+          APP_URL="${APP_URL:-https://outside-surf.outsidesurf.workers.dev}"
           for i in 1 2 3 4 5; do curl -fsS "$APP_URL/health" && break; sleep 5; done
-          curl -fsS "$APP_URL/health/db"
-          curl -fsS "$APP_URL/api/public/bootstrap" | grep -q '"config"'
+          echo
+          curl -fsS "$APP_URL/health/db"; echo
+          curl -fsS "$APP_URL/api/public/bootstrap" | grep -q '"config"' && echo "API pública OK"
+          curl -fsS "$APP_URL/" | grep -q 'id="root"' && echo "Página do aluno OK"
+          curl -fsS "$APP_URL/painel" | grep -q 'painel.webmanifest' && echo "Painel OK"
+          curl -fsS "$APP_URL/api/public/availability?place=jaguaribe&from=$(date -u +%F)&days=3" | grep -q '"days"' && echo "Horários OK"
