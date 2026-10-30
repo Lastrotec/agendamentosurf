@@ -6,7 +6,6 @@
   "description": "Agendamento de aulas de surf da Outside Surf School — PWA (Cloudflare Workers + Supabase)",
   "scripts": {
     "dev": "vite",
-    "dev:api": "tsx scripts/dev-server.ts",
     "build": "vite build",
     "push:keys": "node scripts/push-keys.mjs",
     "typecheck": "tsc -p tsconfig.worker.json && tsc -p tsconfig.web.json && tsc -p tsconfig.node.json",

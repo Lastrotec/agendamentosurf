@@ -43,7 +43,7 @@ jobs:
       - name: Enviar artefato criptografado (privado, 30 dias)
         uses: actions/upload-artifact@v4
         with:
-          name: toni-backup-${{ github.run_id }}
+          name: outside-backup-${{ github.run_id }}
           path: backup-out/*.age*
           retention-days: 30
           if-no-files-found: error

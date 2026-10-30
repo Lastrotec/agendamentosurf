@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Restauração de um backup criptografado. NUNCA aponte para produção sem aprovação explícita.
-# Uso: AGE_IDENTITY=~/chave-toni.txt TARGET_DATABASE_URL=postgres://...teste scripts/restore.sh toni-XXXX.dump.age
+# Uso: AGE_IDENTITY=~/chave-outside.txt TARGET_DATABASE_URL=postgres://...teste scripts/restore.sh outside-XXXX.dump.age
 set -euo pipefail
 export PGOPTIONS="-c client_min_messages=warning"
 FILE="${1:?informe o arquivo .dump.age}"

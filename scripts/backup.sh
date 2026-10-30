@@ -13,7 +13,7 @@ mkdir -p "$OUT"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 WORK="$(mktemp -d)"
 chmod 700 "$WORK"
-PLAIN="$WORK/toni-$STAMP.dump"
+PLAIN="$WORK/outside-$STAMP.dump"
 cleanup() { if [ -f "$PLAIN" ]; then shred -u "$PLAIN" 2>/dev/null || rm -f "$PLAIN"; fi; rm -rf "$WORK"; }
 trap cleanup EXIT
 
@@ -41,7 +41,7 @@ if [ -n "${VERIFY_DATABASE_URL:-}" ]; then
   psql "$VERIFY_DATABASE_URL" -qc "drop schema public cascade; create schema public;" >/dev/null
 fi
 
-ENC="$OUT/toni-$STAMP.dump.age"
+ENC="$OUT/outside-$STAMP.dump.age"
 age --encrypt --recipient "$AGE_RECIPIENT" --output "$ENC" "$PLAIN"
 shred -u "$PLAIN" 2>/dev/null || rm -f "$PLAIN"
 [ -s "$ENC" ] || { echo "✘ arquivo criptografado vazio"; exit 1; }
