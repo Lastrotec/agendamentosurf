@@ -18,25 +18,22 @@ Token com as permissões: **Workers Scripts: Edit**, **Account → Hyperdrive: E
 Anote o **Account ID** (painel da Cloudflare → Workers & Pages → lado direito).
 
 ## 3. GitHub → Settings → Secrets and variables → Actions
-| Nome | Tipo | Valor |
-|---|---|---|
-| `CLOUDFLARE_API_TOKEN` | secret | token do passo 2 |
-| `CLOUDFLARE_ACCOUNT_ID` | secret | Account ID |
-| `SUPABASE_DIRECT_URL` | secret | Session pooler (migrações, backup e manter ativo) |
-| `SUPABASE_POOLER_URL` | secret | Transaction pooler (opcional, usado pelo Hyperdrive) |
-| `DATA_ENCRYPTION_KEY` | secret | `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` |
-| `RATE_LIMIT_SALT` | secret | texto aleatório longo |
-| `VAPID_PRIVATE_JWK` | secret | `npm run push:keys` (notificações push) |
-| `VAPID_SUBJECT` | secret | `mailto:contato@seudominio.com.br` |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | secret | acesso do Romário (senha com 12+ caracteres, letras e números) |
-| `BACKUP_AGE_PUBLIC_KEY` | secret | chave pública `age` para o backup criptografado (opcional) |
-| `APP_URL` | **variable** | endereço final, ex.: `https://outsidesurf.com.br` |
+Só **3 segredos** são obrigatórios:
 
-Crie também o environment **production** (Settings → Environments).
+| Nome | Valor |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | token do passo 2 |
+| `SUPABASE_DIRECT_URL` | Session/Shared pooler (porta 5432) com a senha codificada (`@` vira `%40`) |
+| `ADMIN_PASSWORD` | senha do painel do Romário (12+ caracteres, letras e números) |
+
+Opcionais: `ADMIN_EMAIL` (padrão `romario@outsidesurf.com.br`), `CLOUDFLARE_ACCOUNT_ID` (se o token tiver mais de uma conta),
+`SUPABASE_POOLER_URL`, `BACKUP_AGE_PUBLIC_KEY` e a variável `APP_URL`.
+A chave de criptografia, o sal e as chaves das notificações (`DATA_ENCRYPTION_KEY`, `RATE_LIMIT_SALT`, `VAPID_*`) são
+**gerados automaticamente** na primeira publicação e guardados como segredos do Worker. O acesso do instrutor é criado
+na primeira publicação e nunca é sobrescrito depois.
 
 ## 4. Primeira publicação
 1. Faça o merge na `main` (ou rode **Actions → Deploy → Run workflow**).
-2. Rode **Actions → Criar/atualizar acesso do instrutor** uma vez.
 3. Abra `APP_URL/painel`, entre com o e-mail e a senha, configure a verificação em duas etapas (obrigatória),
    ative as notificações e confira **Ajustes** (Pix, prazos, lembretes) e **Textos e fotos**.
 4. Domínio próprio: Cloudflare → Workers → `outside-surf` → Settings → Domains & Routes.

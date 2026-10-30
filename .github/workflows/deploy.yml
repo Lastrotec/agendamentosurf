@@ -33,8 +33,12 @@ jobs:
     environment: production
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
+      # Account ID é opcional: com um token de uma conta só, o wrangler descobre sozinho.
+      - name: Conta da Cloudflare
+        env:
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: if [ -n "$ACCOUNT" ]; then echo "CLOUDFLARE_ACCOUNT_ID=$ACCOUNT" >> "$GITHUB_ENV"; fi
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
@@ -43,6 +47,7 @@ jobs:
         run: |
           [ -n "$CLOUDFLARE_API_TOKEN" ] || { echo "::error::Falta o segredo CLOUDFLARE_API_TOKEN"; exit 1; }
           [ -n "${{ secrets.SUPABASE_DIRECT_URL }}" ] || { echo "::error::Falta o segredo SUPABASE_DIRECT_URL"; exit 1; }
+          [ -n "${{ secrets.ADMIN_PASSWORD }}" ] || echo "::warning::Falta o segredo ADMIN_PASSWORD (acesso do instrutor)"
       # Migrações aditivas + dados iniciais (idempotentes), pela conexão direta do Supabase.
       - name: Migrações e dados iniciais
         env:
@@ -65,7 +70,8 @@ jobs:
       - run: npm run build
       - name: Publicar Worker
         run: npx wrangler deploy --message "deploy ${GITHUB_SHA::7}"
-      # Segredos do Worker vindos dos segredos do GitHub (só os que existirem).
+      # Segredos do Worker: usa os do GitHub quando existirem; senão gera na primeira publicação
+      # (chave de criptografia, sal e chaves das notificações) e não mexe mais nos que já estão lá.
       - name: Segredos do Worker
         env:
           DATA_ENCRYPTION_KEY: ${{ secrets.DATA_ENCRYPTION_KEY }}
@@ -74,14 +80,40 @@ jobs:
           VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
           APP_ORIGIN: ${{ vars.APP_URL }}
         run: |
-          node -e '
-            const keys = ["DATA_ENCRYPTION_KEY","RATE_LIMIT_SALT","VAPID_PRIVATE_JWK","VAPID_SUBJECT","APP_ORIGIN"];
-            const out = Object.fromEntries(keys.filter(k => process.env[k]).map(k => [k, process.env[k]]));
-            require("fs").writeFileSync("/tmp/secrets.json", JSON.stringify(out));
-            console.log("Segredos enviados:", Object.keys(out).join(", ") || "nenhum");
+          npx wrangler secret list --format json > /tmp/existing.json 2>/dev/null || echo '[]' > /tmp/existing.json
+          node --input-type=module -e '
+            import { readFileSync, writeFileSync } from "node:fs";
+            import { randomBytes, webcrypto } from "node:crypto";
+            const have = new Set(JSON.parse(readFileSync("/tmp/existing.json", "utf8") || "[]").map((s) => s.name));
+            const out = {};
+            const want = async (k, make) => {
+              if (process.env[k]) out[k] = process.env[k];
+              else if (!have.has(k) && make) out[k] = await make();
+            };
+            await want("DATA_ENCRYPTION_KEY", () => randomBytes(32).toString("base64url"));
+            await want("RATE_LIMIT_SALT", () => randomBytes(24).toString("base64url"));
+            await want("VAPID_PRIVATE_JWK", async () => {
+              const kp = await webcrypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign"]);
+              const { kty, crv, x, y, d } = await webcrypto.subtle.exportKey("jwk", kp.privateKey);
+              return JSON.stringify({ kty, crv, x, y, d });
+            });
+            await want("VAPID_SUBJECT", () => "mailto:contato@outsidesurf.com.br");
+            await want("APP_ORIGIN");
+            writeFileSync("/tmp/secrets.json", JSON.stringify(out));
+            console.log("Segredos enviados:", Object.keys(out).join(", ") || "nenhum (já configurados)");
           '
-          npx wrangler secret bulk /tmp/secrets.json
-          rm -f /tmp/secrets.json
+          if [ "$(cat /tmp/secrets.json)" != "{}" ]; then npx wrangler secret bulk /tmp/secrets.json; fi
+          rm -f /tmp/secrets.json /tmp/existing.json
+      # Acesso do instrutor: criado só se ainda não existir nenhum (nunca sobrescreve a senha trocada no painel).
+      - name: Acesso do instrutor (primeira vez)
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+        run: |
+          if [ -z "$ADMIN_PASSWORD" ]; then echo "::warning::Sem ADMIN_PASSWORD: acesso do instrutor não criado"; exit 0; fi
+          N=$(node --input-type=module -e 'import postgres from "postgres"; const sql = postgres(process.env.DATABASE_URL, { max: 1 }); const [r] = await sql`select count(*)::int as n from admins`; console.log(r.n); await sql.end();')
+          if [ "$N" = "0" ]; then npm run admin:create -- --email "${ADMIN_EMAIL:-romario@outsidesurf.com.br}" --name "Romário de Jesus"; else echo "Instrutor já cadastrado."; fi
       - name: Validar produção
         env:
           APP_URL: ${{ vars.APP_URL }}
