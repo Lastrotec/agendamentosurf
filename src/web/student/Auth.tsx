@@ -52,7 +52,7 @@ export function AuthModal() {
   const title = mode === 'signup' ? 'Crie sua conta em segundos' : mode === 'login' ? 'Que bom te ver de novo' : 'Criar uma senha nova';
   return (
     <Modal title={title} onClose={closeAuth} className="auth-modal">
-      <div className="auth-logo"><Logo width={110} /></div>
+      <div className="auth-logo"><Logo height={110} /></div>
       <div className="tabs">
         <button type="button" className={mode === 'signup' ? 'active' : ''} onClick={() => (setMode('signup'), setError(null))}>Criar conta</button>
         <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => (setMode('login'), setError(null))}>Já tenho conta</button>

@@ -17,6 +17,7 @@
 <title>Outside Surf School · Aulas de surf em Salvador</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/icons/favicon-48.png" sizes="48x48" type="image/png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preload" href="/fonts/font-8.woff2" as="font" type="font/woff2" crossorigin>
 <style>
@@ -26,9 +27,9 @@ html.splashing,html.splashing body{overflow:hidden}
 #splash.out{opacity:0;pointer-events:none}
 #splash *{animation-play-state:paused}#splash.go *{animation-play-state:running}
 .sp-logo{position:absolute;left:50%;top:44%;z-index:3;width:max-content;transform:translate3d(-50%,-50%,0);will-change:transform,opacity;animation:spLogo 1s cubic-bezier(.22,1,.36,1) both}
-.sp-mark{display:flex;align-items:center;color:#1F4E96}.sp-mark.white{position:absolute;inset:0;color:#fff;opacity:0;will-change:opacity;animation:spFade .7s ease-in-out 1.4s forwards}
+.sp-mark{display:flex;align-items:center;justify-content:center;color:#FF591D}.sp-mark.white{position:absolute;inset:0;color:#fff;opacity:0;will-change:opacity;animation:spFade .7s ease-in-out 1.4s forwards}
 .sp-mark.orange{will-change:opacity;animation:spFadeOut .7s ease-in-out 1.4s forwards}
-.sp-logo svg{width:230px;height:auto}
+.sp-logo svg{height:min(330px,42vh);width:auto;display:block}
 .sp-name{font:800 46px/1 'Manrope',sans-serif;letter-spacing:-2.6px}.sp-name small{display:block;font:700 10px 'DM Sans',sans-serif;letter-spacing:5px;margin-top:8px}
 .sp-sea{position:absolute;inset:0;z-index:2;transform:translate3d(0,108%,0);will-change:transform;animation:spRise 2.3s cubic-bezier(.45,.02,.2,1) .45s forwards}
 .sp-layer{position:absolute;left:0;right:0;top:0;height:calc(100% + 260px);will-change:transform;animation:spBob 2.6s ease-in-out infinite alternate}
@@ -46,7 +47,7 @@ html.splashing,html.splashing body{overflow:hidden}
 @keyframes spFlow{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 @keyframes spBubble{0%{opacity:0;transform:translate3d(0,0,0) scale(.4)}25%{opacity:.95}100%{opacity:0;transform:translate3d(var(--drift),-80px,0) scale(1.15)}}
 #splash.reduce .sp-sea{display:none}#splash.reduce .sp-logo,#splash.reduce .sp-mark{animation:none}
-@media(max-width:700px){.sp-logo svg{width:190px}}
+
 </style>
 </head>
 <body>

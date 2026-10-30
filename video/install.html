@@ -1,9 +1,9 @@
 <!doctype html><html><head><meta charset="utf-8"><style>
-*{box-sizing:border-box}body{margin:0;width:540px;height:960px;overflow:hidden;background:radial-gradient(120% 70% at 50% 0%,#fff7d6,#f7ec86 55%,#efe07a);font-family:'DM Sans',system-ui,sans-serif;color:#1f4e96}
-.top{position:absolute;top:34px;left:0;right:0;text-align:center}
-.top b{display:block;font:800 30px/1.1 system-ui;letter-spacing:-1px}
-.top small{display:block;margin-top:6px;font:600 15px system-ui;color:#3d5f99;letter-spacing:.5px}
-.phone{position:absolute;left:105px;top:128px;width:330px;height:690px;border-radius:46px;background:#111;padding:11px;box-shadow:0 30px 70px #1f4e9655}
+*{box-sizing:border-box}body{margin:0;width:540px;height:960px;overflow:hidden;background:radial-gradient(120% 70% at 50% 0%,#5a5b40,#42432F 60%,#34352a);font-family:'DM Sans',system-ui,sans-serif;color:#fff}
+.top{position:absolute;top:22px;left:0;right:0;text-align:center}.top img{height:70px;display:block;margin:0 auto 6px}
+.top b{display:block;font:800 26px/1.1 system-ui;letter-spacing:-1px}
+.top small{display:block;margin-top:4px;font:600 14px system-ui;color:#FF8a5c;letter-spacing:.5px}
+.phone{position:absolute;left:115px;top:158px;width:310px;height:650px;border-radius:44px;background:#111;padding:10px;box-shadow:0 30px 70px #0007}
 .screen{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#f7f8f5}
 .layer{position:absolute;inset:0;opacity:0;transition:opacity .45s,transform .45s}
 .layer.on{opacity:1}
@@ -35,7 +35,7 @@
 .dialog .btns{display:flex;justify-content:flex-end;gap:18px;margin-top:18px;font:700 14px system-ui}
 .dialog .btns span{color:#555}.dialog .btns b{color:#1a73e8}
 .ios .dialog .btns b{color:#0a7aff}
-.home{background:linear-gradient(160deg,#1f8f8a,#1f4e96 60%,#0b2c5e)}
+.home{background:linear-gradient(160deg,#1f8f8a,#2c5d70 60%,#15303d)}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px;padding:60px 18px}
 .grid i{display:block;width:56px;height:56px;border-radius:14px;background:#ffffff33;margin:0 auto}
 .grid em{display:block;text-align:center;font:500 10px system-ui;color:#fff;margin-top:5px;font-style:normal}
@@ -49,13 +49,13 @@
 .tap{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:#ff571c66;border:3px solid #ff571c;opacity:0;pointer-events:none;z-index:9}
 .tap.go{animation:tap .9s ease-out}
 @keyframes tap{0%{opacity:0;transform:scale(1.8)}25%{opacity:1;transform:scale(1)}60%{opacity:1;transform:scale(.85)}100%{opacity:0;transform:scale(1.3)}}
-.cap{position:absolute;left:30px;right:30px;bottom:44px;min-height:84px;background:#1f4e96;color:#fff;border-radius:20px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 12px 30px #1f4e9644}
-.cap b{flex:none;width:38px;height:38px;border-radius:50%;background:#f7ec86;color:#1f4e96;display:grid;place-items:center;font:800 18px system-ui}
+.cap{position:absolute;left:30px;right:30px;bottom:36px;min-height:84px;background:#FF591D;color:#fff;border-radius:20px;padding:16px 18px;display:flex;gap:14px;align-items:center;box-shadow:0 12px 30px #0005}
+.cap b{flex:none;width:38px;height:38px;border-radius:50%;background:#fff;color:#FF591D;display:grid;place-items:center;font:800 18px system-ui}
 .cap span{font:700 17px/1.3 system-ui}
 .ok{position:absolute;inset:0;display:grid;place-items:center;background:#0008;opacity:0;transition:.4s}
-.ok.on{opacity:1}.ok div{background:#fff;border-radius:18px;padding:18px 22px;font:800 16px system-ui;color:#1f4e96;text-align:center}
+.ok.on{opacity:1}
 </style></head><body>
-<div class="top"><b id="title"></b><small id="sub"></small></div>
+<div class="top"><img src="logo.svg" alt=""><b id="title"></b><small id="sub"></small></div>
 <div class="phone"><div class="screen" id="screen"></div></div>
 <div class="cap"><b id="n">1</b><span id="cap"></span></div>
 <div class="tap" id="tap"></div>
@@ -69,16 +69,16 @@ document.getElementById('sub').textContent = ios ? 'Pelo Safari · 3 toques' : '
 const grid = () => `<div class="grid">${Array.from({length:11},(_,i)=>`<span><i></i><em>${['Fotos','Mapas','Relógio','Clima','Câmera','Notas','Música','Banco','Agenda','Ajustes','Mensagens'][i]}</em></span>`).join('')}<span class="ours" id="ours"><img src="icon.png"><em>Outside Surf</em></span></div>`;
 S.innerHTML = ios ? `
   <div class="layer on" id="site"><div class="status"><span>9:41</span><span>●●● 100%</span></div><div class="page"><img class="shot" src="iphone-site.jpg"></div>
-    <div class="iosbar"><div class="url">🔒 outsidesurf.com.br</div><div class="tools"><span>‹</span><span>›</span><span id="share">⬆︎</span><span>📖</span><span>⧉</span></div></div>
+    <div class="iosbar"><div class="url">🔒 outsidesurf.workers.dev</div><div class="tools"><span>‹</span><span>›</span><span id="share">⬆︎</span><span>📖</span><span>⧉</span></div></div>
     <div class="sheet" id="sheet"><div style="font:700 13px system-ui;color:#111;text-align:center">Outside Surf School</div><div class="row"><div>Copiar <span>⧉</span></div><div>Adicionar aos Favoritos <span>☆</span></div><div id="addrow">Adicionar à Tela de Início <span>⊞</span></div><div>Buscar na Página <span>🔍</span></div></div></div>
-    <div class="dialog" id="dialog"><h4>Adicionar à Tela de Início</h4><div class="app"><img src="icon.png"><div>Outside Surf<br><small style="color:#777;font-weight:400">outsidesurf.com.br</small></div></div><div class="btns"><span>Cancelar</span><b id="addbtn">Adicionar</b></div></div>
+    <div class="dialog" id="dialog"><h4>Adicionar à Tela de Início</h4><div class="app"><img src="icon.png"><div>Outside Surf<br><small style="color:#777;font-weight:400">outside-surf…workers.dev</small></div></div><div class="btns"><span>Cancelar</span><b id="addbtn">Adicionar</b></div></div>
   </div>
   <div class="layer home" id="home">${grid()}</div>
   <div class="layer" id="app"><div class="status"></div><img class="shot" src="iphone-app.jpg"><div class="perm" id="perm"><p>“Outside Surf” deseja enviar notificações</p><div><span>Não Permitir</span><span id="allow">Permitir</span></div></div></div>`
 : `
-  <div class="layer on" id="site"><div class="status"><span>9:41</span><span>▲ 100%</span></div><div class="addr"><div class="url">🔒 outsidesurf.com.br</div><div class="dots" id="dots">⋮</div></div><div class="page"><img class="shot" src="android-site.jpg" style="margin-top:-2px"></div>
+  <div class="layer on" id="site"><div class="status"><span>9:41</span><span>▲ 100%</span></div><div class="addr"><div class="url">🔒 outsidesurf.workers.dev</div><div class="dots" id="dots">⋮</div></div><div class="page"><img class="shot" src="android-site.jpg" style="margin-top:-2px"></div>
     <div class="menu" id="menu" style="opacity:0"><div>Nova guia</div><div>Histórico</div><div>Downloads</div><div class="hl" id="inst">⤓ Instalar app</div><div>Compartilhar…</div><div>Configurações</div></div>
-    <div class="dialog" id="dialog"><h4>Instalar app?</h4><div class="app"><img src="icon.png"><div>Outside Surf<br><small style="color:#777;font-weight:400">outsidesurf.com.br</small></div></div><div class="btns"><span>Cancelar</span><b id="addbtn">Instalar</b></div></div>
+    <div class="dialog" id="dialog"><h4>Instalar app?</h4><div class="app"><img src="icon.png"><div>Outside Surf<br><small style="color:#777;font-weight:400">outside-surf…workers.dev</small></div></div><div class="btns"><span>Cancelar</span><b id="addbtn">Instalar</b></div></div>
   </div>
   <div class="layer home" id="home">${grid()}</div>
   <div class="layer" id="app"><div class="status"></div><img class="shot" src="android-app.jpg"><div class="perm" id="perm"><p>Permitir que Outside Surf envie notificações?</p><div><span>Não permitir</span><span id="allow">Permitir</span></div></div></div>`;

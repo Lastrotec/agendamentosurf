@@ -59,7 +59,7 @@ function Login({ onDone, stage }: { onDone: () => void; stage: 'login' | 'mfa' }
   return (
     <div className="login-page">
       <form className="card" onSubmit={submit}>
-        <Logo width={150} />
+        <Logo height={140} />
         <h2 style={{ textAlign: 'center' }}>Painel do instrutor</h2>
         <p className="muted" style={{ textAlign: 'center', marginBottom: 16 }}>{step === 'login' ? 'Entre com seu e-mail e senha.' : 'Digite o código de 6 dígitos do app autenticador.'}</p>
         {step === 'login' ? (
@@ -96,7 +96,7 @@ function MfaSetup({ onDone }: { onDone: () => void }) {
   return (
     <div className="login-page">
       <div className="card">
-        <Logo width={120} />
+        <Logo height={130} />
         <h2 style={{ textAlign: 'center' }}>Proteja o painel</h2>
         <p className="muted" style={{ textAlign: 'center' }}>Obrigatório no primeiro acesso. Instale o Google Authenticator (ou similar), leia o QR Code e digite o código.</p>
         {svg && <div className="qr-box" style={{ margin: '16px auto', maxWidth: 200 }} dangerouslySetInnerHTML={{ __html: svg }} />}
@@ -175,7 +175,7 @@ function AdminShell({ me, onLogout }: { me: MeAdmin; onLogout: () => void }) {
   return (
     <div id="app" className="admin">
       <aside className="sidebar">
-        <a href="/painel" className="brand" onClick={(e) => (e.preventDefault(), go('/painel'))}><Logo width={150} /></a>
+        <a href="/painel" className="brand" onClick={(e) => (e.preventDefault(), go('/painel'))}><Logo height={140} /></a>
         <div className="admin-badge">PAINEL DO INSTRUTOR</div>
         <nav className="nav" aria-label="Painel">
           {NAV.map(([to, ic, label]) => (
@@ -196,7 +196,7 @@ function AdminShell({ me, onLogout }: { me: MeAdmin; onLogout: () => void }) {
       <main className="main">
         <header className="topbar">
           <div className="breadcrumb">Painel <span>/</span><span>{NAV.find((n) => n[0] === active)?.[2]}</span></div>
-          <a className="mobile-brand" href="/painel" onClick={(e) => (e.preventDefault(), go('/painel'))}><Logo width={62} /></a>
+          <a className="mobile-brand" href="/painel" onClick={(e) => (e.preventDefault(), go('/painel'))}><Logo height={56} /></a>
           <div className="top-actions">
             <button type="button" className="icon-btn" aria-label="Alternar tema" onClick={toggle}><Icon name={dark ? 'sun' : 'moon'} /></button>
             <button type="button" className="icon-btn bell" aria-label={`Avisos${unread ? ` (${unread} novos)` : ''}`} onClick={() => setBell(true)}>

@@ -97,7 +97,7 @@ function Shell() {
       {!online && <div className="offline">Você está offline. Conecte-se para agendar ou pagar.</div>}
       <aside className="sidebar">
         <a href="/" className="brand" onClick={(e) => (e.preventDefault(), navigate('/'))} aria-label={c.school}>
-          <Logo width={150} />
+          <Logo height={140} />
         </a>
         <div className="navlabel">Seu espaço</div>
         <nav className="nav" aria-label="Navegação principal">
@@ -123,7 +123,7 @@ function Shell() {
       <main className="main">
         <header className="topbar">
           <div className="breadcrumb">{c.school} <span>/</span><span>{nav.find((n) => n[0] === active)?.[2] ?? (path === '/locais' ? 'Locais' : path === '/instalar' ? 'Instalar' : path === '/privacidade' ? 'Privacidade' : 'Início')}</span></div>
-          <a className="mobile-brand" href="/" onClick={(e) => (e.preventDefault(), navigate('/'))} aria-label={c.school}><Logo width={62} /></a>
+          <a className="mobile-brand" href="/" onClick={(e) => (e.preventDefault(), navigate('/'))} aria-label={c.school}><Logo height={56} /></a>
           <div className="top-actions">
             {!isStandalone() && <button type="button" className="install-pill" onClick={() => navigate('/instalar')}><Icon name="download" />Instalar</button>}
             <button type="button" className="icon-btn" aria-label="Alternar tema" onClick={toggle}><Icon name={dark ? 'sun' : 'moon'} /></button>
@@ -160,7 +160,7 @@ export function StudentApp() {
   if (failed)
     return (
       <div className="boot-error">
-        <Logo width={140} />
+        <Logo height={150} />
         <h1>Não foi possível abrir o app.</h1>
         <p>Confira sua conexão e tente de novo.</p>
         <Btn icon="refresh" onClick={() => location.reload()}>Tentar de novo</Btn>

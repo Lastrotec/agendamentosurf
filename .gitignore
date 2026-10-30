@@ -5,3 +5,6 @@ dist/
 test-results/
 *.local
 backup-out/
+video/raw-*/
+video/*.png
+video/*.jpg

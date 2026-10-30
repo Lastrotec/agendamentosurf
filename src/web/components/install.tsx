@@ -87,7 +87,7 @@ export function InstallBanner() {
   if (isStandalone()) return null;
   return (
     <section className="install-banner">
-      <Logo width={64} />
+      <Logo height={70} variant="white" />
       <div>
         <strong>Instale o app da Outside</strong>
         <p>Abre em 1 toque, recebe os lembretes das aulas e não ocupa espaço.</p>
@@ -201,7 +201,7 @@ export function PushGate({ who }: { who: Who }) {
       : ['Confirmação da sua aula', 'Lembrete antes da aula e no dia', 'Aviso se o mar mudar os planos'];
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="gate-title" className="push-gate">
-      <Logo width={120} />
+      <Logo height={150} />
       <span className="push-ico big"><Icon name="bell" /></span>
       <h1 id="gate-title">{stage === 'denied' ? 'Notificações bloqueadas' : 'Ative as notificações'}</h1>
       {stage === 'denied' ? (
