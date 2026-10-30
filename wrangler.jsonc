@@ -1,0 +1,27 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "outside-surf",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // SPA estática servida pela borda: arquivos com hash, fotos, fontes e ícones não passam pelo Worker
+  // (não contam requisições do plano Free).
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/*", "!/assets/*", "!/fonts/*", "!/brand/*", "!/icons/*", "!/img/surf.jpg", "!/img/coast.jpg", "!/img/beach.jpg", "!/videos/*", "!/sw.js", "!/offline.html", "!/robots.txt"]
+  },
+  // Cron (UTC). Plano Free: até 5 por conta — usamos 3.
+  //  */15  lembretes, expiração de reservas sem pagamento e leitura do banco (mantém o Supabase acordado)
+  //  0 */3 previsão do mar (Open-Meteo) gravada no banco
+  //  30 6  limpeza diária (sessões, limites, avisos antigos, imagens sem uso)
+  "triggers": { "crons": ["*/15 * * * *", "0 */3 * * *", "30 6 * * *"] },
+  "vars": { "ENVIRONMENT": "production", "REQUIRE_MFA": "true" },
+  // Necessário com o Supabase: `wrangler hyperdrive create outside-db --connection-string=...` e descomente.
+  // "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "COLE_O_ID_AQUI" }],
+  "observability": { "enabled": true, "head_sampling_rate": 0.2 },
+  "upload_source_maps": false
+  // Segredos (wrangler secret put): DATABASE_URL (se não usar Hyperdrive), DATA_ENCRYPTION_KEY, RATE_LIMIT_SALT,
+  // VAPID_PRIVATE_JWK (`npm run push:keys`); opcional: VAPID_SUBJECT.
+}

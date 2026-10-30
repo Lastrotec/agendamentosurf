@@ -1,0 +1,61 @@
+name: Backup criptografado do banco
+on:
+  schedule:
+    - cron: '0 */12 * * *' # UTC
+  workflow_dispatch:
+# Nunca roda em pull requests (segredos de produção).
+permissions:
+  contents: read
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      verify:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: postgres, POSTGRES_DB: verify }
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+      AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_PUBLIC_KEY }}
+      VERIFY_DATABASE_URL: postgres://postgres:postgres@localhost:5432/verify
+    steps:
+      - uses: actions/checkout@v4
+      - name: Conferir segredos
+        run: |
+          [ -n "$DATABASE_URL" ] || { echo "::error::SUPABASE_DIRECT_URL não configurado"; exit 1; }
+          [[ "$AGE_RECIPIENT" == age1* ]] || { echo "::error::BACKUP_AGE_PUBLIC_KEY inválida"; exit 1; }
+      - name: Instalar PostgreSQL 17 client e age
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSo /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-17 age
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+      - name: Dump → restauração de teste isolada → criptografia
+        id: backup
+        run: scripts/backup.sh backup-out
+      - name: Enviar artefato criptografado (privado, 30 dias)
+        uses: actions/upload-artifact@v4
+        with:
+          name: toni-backup-${{ github.run_id }}
+          path: backup-out/*.age*
+          retention-days: 30
+          if-no-files-found: error
+          compression-level: 0
+      - name: Registrar sucesso no painel
+        run: |
+          psql "$DATABASE_URL" -qc "insert into system_status (key, ok, last_success_at, detail, updated_at) values
+            ('backup', true, now(), 'Execução ${{ github.run_id }}', now()),
+            ('restore_test', true, now(), 'Restauração isolada no runner ${{ github.run_id }}', now())
+            on conflict (key) do update set ok = true, last_success_at = now(), detail = excluded.detail, updated_at = now()"
+      - name: Registrar falha no painel
+        if: failure()
+        run: |
+          psql "$DATABASE_URL" -qc "insert into system_status (key, ok, last_failure_at, detail, updated_at) values ('backup', false, now(), 'Falha na execução ${{ github.run_id }}', now())
+            on conflict (key) do update set ok = false, last_failure_at = now(), detail = excluded.detail, updated_at = now()" || true
