@@ -1,0 +1,48 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}html{zoom:2}body{margin:0;width:540px;height:960px;overflow:hidden;font-family:system-ui,sans-serif;background:#42432F;color:#fff}
+.scene{position:absolute;inset:0;opacity:0;transition:opacity .6s}
+.scene.on{opacity:1}
+/* 1: abertura com a onda */
+#s1{background:radial-gradient(120% 80% at 50% 30%,#fffaf3,#f3ece0)}
+#s1 .logo{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);height:390px;z-index:3}
+#s1 .logo svg{height:100%;width:auto;display:block;color:#FF591D;transition:color .7s}
+#s1.white .logo svg{color:#fff}
+.sea{position:absolute;left:0;right:0;top:0;height:100%;transform:translateY(108%);transition:transform 2.2s cubic-bezier(.45,.02,.2,1)}
+#s1.up .sea{transform:translateY(-12%)}
+.sea .l{position:absolute;left:0;right:0;height:140%;border-radius:45% 55% 0 0/40px 40px 0 0}
+.l3{top:-60px;background:#0b3f45}.l2{top:-20px;background:#0f5e5b}.l1{top:30px;background:#1f8f8a}
+.foam{position:absolute;left:-10%;right:-10%;top:16px;height:34px;background:#fff;border-radius:50%;opacity:.95;filter:blur(1px)}
+/* cenas com o celular */
+.head{position:absolute;top:60px;left:30px;right:30px;text-align:center}
+.head b{display:block;font:800 34px/1.08 system-ui;letter-spacing:-1.2px}
+.head small{display:block;margin-top:10px;font:600 17px system-ui;color:#ffb08e}
+.phone{position:absolute;left:115px;top:230px;width:310px;height:650px;border-radius:44px;background:#111;padding:10px;box-shadow:0 30px 70px #0008;transform:translateY(40px);transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+.scene.on .phone{transform:translateY(0)}
+.screen{width:100%;height:100%;border-radius:34px;overflow:hidden;background:#f7f8f5}
+.screen img{width:100%;display:block}
+.tag{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);background:#FF591D;border-radius:999px;padding:12px 22px;font:800 17px system-ui;white-space:nowrap;box-shadow:0 10px 30px #0006}
+/* final */
+#s6 .logo{position:absolute;left:50%;top:80px;transform:translateX(-50%);height:420px}
+#s6 .logo svg{height:100%;width:auto;display:block;color:#FF591D}
+#s6 .cta{position:absolute;left:30px;right:30px;top:540px;text-align:center}
+#s6 .cta b{display:block;font:800 36px/1.1 system-ui;letter-spacing:-1px}
+#s6 .cta span{display:inline-block;margin-top:18px;background:#FF591D;padding:14px 22px;border-radius:16px;font:800 18px system-ui}
+#s6 .cta small{display:block;margin-top:18px;font:600 16px/1.5 system-ui;color:#e9e3d5}
+</style></head><body>
+<div class="scene on" id="s1"><div class="logo" id="lg1"></div><div class="sea"><div class="l l3"></div><div class="l l2"></div><div class="l l1"><div class="foam"></div></div></div></div>
+<div class="scene" id="s2"><div class="head"><b>Aulas de surf<br>em Salvador</b><small>Jaguaribe · Farol da Barra</small></div><div class="phone"><div class="screen"><img src="iphone-app.jpg"></div></div></div>
+<div class="scene" id="s3"><div class="head"><b>Escolha a praia<br>e o horário</b><small>Individual ou em dupla · pacotes</small></div><div class="phone"><div class="screen"><img src="c-book.jpg"></div></div></div>
+<div class="scene" id="s4"><div class="head"><b>Veja o mar<br>antes de agendar</b><small>Ondas, vento e maré hora a hora</small></div><div class="phone"><div class="screen"><img src="c-forecast.jpg"></div></div></div>
+<div class="scene" id="s5"><div class="head"><b>Garanta a vaga<br>com o sinal no Pix</b><small>QR Code ou copia e cola</small></div><div class="phone"><div class="screen"><img src="c-pix.jpg"></div></div><div class="tag">Lembrete no celular antes da aula 🔔</div></div>
+<div class="scene" id="s6"><div class="logo" id="lg2"></div><div class="cta"><b>Seu próximo encontro<br>com o mar.</b><span>Agende pelo app</span><small>outside-surf.outsidesurf.workers.dev<br>Instale na tela inicial em 1 toque</small></div></div>
+<script>
+fetch('logo.svg').then(r=>r.text()).then(t=>{const svg=t.replace('fill="#FF591D"','fill="currentColor"');document.getElementById('lg1').innerHTML=svg;document.getElementById('lg2').innerHTML=svg;window.READY=true;});
+const show=(id)=>{document.querySelectorAll('.scene').forEach(s=>s.classList.toggle('on',s.id===id));};
+window.TOTAL=19500;
+window.start=()=>{
+  const s1=document.getElementById('s1');
+  setTimeout(()=>s1.classList.add('up'),500);
+  setTimeout(()=>s1.classList.add('white'),1700);
+  [[3400,'s2'],[6600,'s3'],[9600,'s4'],[12600,'s5'],[15800,'s6']].forEach(([t,id])=>setTimeout(()=>show(id),t));
+};
+</script></body></html>
