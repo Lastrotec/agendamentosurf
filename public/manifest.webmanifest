@@ -8,16 +8,58 @@
   "display": "standalone",
   "orientation": "portrait",
   "lang": "pt-BR",
-  "background_color": "#42432F",
+  "background_color": "#f7f2ea",
   "theme_color": "#f7f8f5",
-  "categories": ["sports", "lifestyle"],
+  "categories": [
+    "sports",
+    "lifestyle"
+  ],
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "Agendar aula", "short_name": "Agendar", "url": "/agendar", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Minhas aulas", "short_name": "Aulas", "url": "/aulas", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
-  ]
+    {
+      "name": "Agendar aula",
+      "short_name": "Agendar",
+      "url": "/agendar",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Minhas aulas",
+      "short_name": "Aulas",
+      "url": "/aulas",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "display_override": [
+    "standalone"
+  ],
+  "prefer_related_applications": false
 }

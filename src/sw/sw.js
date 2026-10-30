@@ -51,8 +51,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Abertura, logo e ícone: rede primeiro (sempre a versão atual), cache só quando estiver offline.
   if (PRECACHE.includes(url.pathname)) {
-    event.respondWith(caches.match(req).then((hit) => hit || fetch(req)));
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(STATIC_CACHE).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req)),
+    );
   }
 });
 

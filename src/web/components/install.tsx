@@ -1,10 +1,11 @@
-// Instalação do app (só aparece para quem usa pelo navegador) e ativação obrigatória das notificações.
+// Instalação do app (só aparece para quem usa pelo navegador) e cartão de notificações.
+// A etapa de ativação na primeira utilização fica em Onboarding.tsx.
 import { useCallback, useEffect, useState } from 'react';
 
 import { errorMessage } from '../lib/api';
 import { Link } from '../lib/router';
 import { detectPlatform, isStandalone, type Platform, useInstallPrompt } from '../pwa/pwa';
-import { disablePush, enablePush, isIos, type PushState, pushSupported, readPushState, sendTestPush, syncPush, type Who } from '../pwa/push';
+import { disablePush, enablePush, type PushState, readPushState, sendTestPush, syncPush, type Who } from '../pwa/push';
 import { Icon } from './icons';
 import { Logo } from './Logo';
 import { Btn, useToast } from './ui';
@@ -157,88 +158,5 @@ export function PushCard({ who, hours }: { who: Who; hours?: number[] }) {
         </div>
       </div>
     </section>
-  );
-}
-
-const GATE = (who: Who) => `os-push-gate-${who}`;
-function needsGate(who: Who) {
-  try {
-    if (!pushSupported() || (isIos() && !isStandalone())) return false;
-    if (localStorage.getItem(GATE(who))) return false;
-    return Notification.permission === 'default';
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Etapa obrigatória depois do login: ativar as notificações. O sistema só deixa pedir a permissão depois
- * de um toque, por isso há um botão e não há "pular". Se a pessoa negar no aviso do celular, explicamos
- * como liberar e seguimos (o navegador não deixa perguntar de novo).
- */
-export function PushGate({ who }: { who: Who }) {
-  const [open, setOpen] = useState(() => needsGate(who));
-  const [stage, setStage] = useState<'ask' | 'busy' | 'denied'>('ask');
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    if (!open) return;
-    readPushState().then((st) => {
-      if (st === 'unconfigured' || st === 'on') setOpen(false);
-    }, () => {});
-  }, [open]);
-  if (!open) return null;
-  const done = () => {
-    try {
-      localStorage.setItem(GATE(who), String(Date.now()));
-    } catch {
-      /* modo privado */
-    }
-    setOpen(false);
-  };
-  const items =
-    who === 'admin'
-      ? ['Novo agendamento e Pix informado na hora', 'Cancelamentos com o valor a devolver', 'Resumo do dia e lembrete de cada aula']
-      : ['Confirmação da sua aula', 'Lembrete antes da aula e no dia', 'Aviso se o mar mudar os planos'];
-  return (
-    <div role="dialog" aria-modal="true" aria-labelledby="gate-title" className="push-gate">
-      <Logo height={150} />
-      <span className="push-ico big"><Icon name="bell" /></span>
-      <h1 id="gate-title">{stage === 'denied' ? 'Notificações bloqueadas' : 'Ative as notificações'}</h1>
-      {stage === 'denied' ? (
-        <>
-          <p>Para receber {who === 'admin' ? 'os avisos da agenda' : 'os lembretes das aulas'}, libere em <strong>Configurações → Notificações</strong> do celular.</p>
-          <Btn full onClick={done}>Continuar</Btn>
-        </>
-      ) : (
-        <>
-          <p>É assim que {who === 'admin' ? 'o app avisa você:' : 'a gente avisa você:'}</p>
-          <ul>{items.map((t) => <li key={t}><Icon name="check" /> {t}</li>)}</ul>
-          {error && <p className="error-text">{error}</p>}
-          <Btn
-            full
-            icon="bell"
-            busy={stage === 'busy'}
-            onClick={async () => {
-              setStage('busy');
-              setError(null);
-              try {
-                await enablePush(who);
-                if (who === 'admin') await sendTestPush().catch(() => {});
-                done();
-              } catch (e) {
-                if (typeof Notification !== 'undefined' && Notification.permission === 'denied') setStage('denied');
-                else {
-                  setError(errorMessage(e));
-                  setStage('ask');
-                }
-              }
-            }}
-          >
-            Ativar notificações
-          </Btn>
-          <small className="muted">Toque em “Permitir” no aviso do celular.</small>
-        </>
-      )}
-    </div>
   );
 }

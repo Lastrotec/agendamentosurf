@@ -324,3 +324,70 @@ describe('listas do painel', () => {
     }
   });
 });
+
+describe('horários (painel)', () => {
+  const place = async (a: Client, id = 'jaguaribe') => (await a.get('/api/admin/places')).json.places.find((p: { id: string }) => p.id === id);
+  const body = (p: any, patch: Record<string, unknown> = {}) => ({
+    name: p.name, short: p.short, address: p.address, meeting: p.meeting, description: p.description, modality: p.modality,
+    capacity: p.capacity, weekdays: p.weekdays, hours: p.hours, schedule: p.schedule, prices: p.prices, imageId: p.imageId,
+    waveFactor: p.waveFactor, active: p.active, ...patch,
+  });
+
+  it('não deixa tirar horário nem dia que já tem aula marcada', async () => {
+    const a = await admin();
+    const { c } = await student('Horario Teste');
+    const date = nextClassDay(5);
+    const r = await c.post('/api/me/bookings', { place: 'jaguaribe', plan: 'single', people: 1, date, time: '11:00', idempotencyKey: idem() });
+    expect(r.status, JSON.stringify(r.json)).toBe(201);
+    const p = await place(a);
+    const noHour = await a.put('/api/admin/places/jaguaribe', body(p, { hours: p.hours.filter((h: string) => h !== '11:00') }));
+    expect(noHour.status).toBe(409);
+    expect(noHour.json.code).toBe('SCHEDULE_CONFLICT');
+    const dow = new Date(`${date}T12:00:00Z`).getUTCDay();
+    const noDay = await a.put('/api/admin/places/jaguaribe', body(p, { weekdays: p.weekdays.filter((d: number) => d !== dow) }));
+    expect(noDay.status).toBe(409);
+    // Adicionar horário é livre e aparece na hora para o aluno.
+    const add = await a.put('/api/admin/places/jaguaribe', body(p, { hours: [...p.hours, '15:30'] }));
+    expect(add.status).toBe(200);
+    const av = await c.get(`/api/public/availability?place=jaguaribe&from=${date}&days=1`);
+    expect(av.json.days[0].slots.map((s: { time: string }) => s.time)).toContain('15:30');
+    await a.put('/api/admin/places/jaguaribe', body(p));
+  });
+
+  it('horários especiais abrem um dia extra; bloqueios aparecem nas exceções', async () => {
+    const a = await admin();
+    // Próxima terça (Jaguaribe não tem aula às terças).
+    const d = new Date(Date.now() + 3 * 86400000);
+    while (d.getUTCDay() !== 2) d.setUTCDate(d.getUTCDate() + 1);
+    const tue = d.toISOString().slice(0, 10);
+    expect((await a.post('/api/admin/day-hours', { place: 'jaguaribe', date: tue, hours: ['07:00', '08:00'] })).status).toBe(200);
+    const av = await new Client(app, env).get(`/api/public/availability?place=jaguaribe&from=${tue}&days=1`);
+    expect(av.json.days[0].slots.map((s: { time: string }) => s.time)).toEqual(['07:00', '08:00']);
+    expect((await a.post('/api/admin/blocks', { place: 'jaguaribe', date: tue, time: '07:00', reason: 'compromisso' })).status).toBe(201);
+    // Repetir o mesmo bloqueio não duplica.
+    await a.post('/api/admin/blocks', { place: 'jaguaribe', date: tue, time: '07:00', reason: '' });
+    const sch = await a.get('/api/admin/schedule');
+    expect(sch.json.blocks.filter((b: { date: string; time: string }) => b.date === tue && b.time === '07:00')).toHaveLength(1);
+    expect(sch.json.overrides.some((o: { date: string }) => o.date === tue)).toBe(true);
+    // Datas passadas são recusadas.
+    expect((await a.post('/api/admin/blocks', { place: 'jaguaribe', date: '2020-01-01', time: null, reason: '' })).status).toBe(400);
+    expect((await a.post('/api/admin/day-hours', { place: 'jaguaribe', date: tue, hours: null })).status).toBe(200);
+  });
+
+  it('aluno não acessa a agenda do painel', async () => {
+    const { c } = await student('Curioso');
+    expect((await c.get('/api/admin/schedule')).status).toBe(401);
+    expect((await c.post('/api/admin/blocks', { place: 'jaguaribe', date: nextClassDay(), time: null, reason: '' })).status).toBe(401);
+  });
+});
+
+describe('senha do aluno', () => {
+  it('trocar a senha encerra as sessões dos outros aparelhos', async () => {
+    const { c, phone } = await student('Duas Sessoes');
+    const other = new Client(app, env);
+    expect((await other.post('/api/me/auth/login', { phone, password: 'onda-boa-77' })).status).toBe(200);
+    expect((await c.post('/api/me/password', { current: 'onda-boa-77', next: 'mar-calmo-2026' })).status).toBe(200);
+    expect((await c.get('/api/me')).status).toBe(200);
+    expect((await other.get('/api/me')).status).toBe(401);
+  });
+});

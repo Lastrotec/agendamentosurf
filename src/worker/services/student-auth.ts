@@ -112,12 +112,15 @@ export async function logout(sql: Sql, token: string | undefined) {
   if (token) await sql`delete from student_sessions where token_hash = ${await sha256Hex(token)}`;
 }
 
-export async function changePassword(sql: Sql, studentId: string, current: string, next: string) {
+/** Troca a senha e encerra as outras sessões do aluno (mantém só este aparelho). */
+export async function changePassword(sql: Sql, studentId: string, current: string, next: string, keepToken?: string) {
   await rateLimit(sql, `spwd:${studentId}`, 5, 900);
   validatePassword(next);
   const [s] = await sql<{ password_hash: string | null }[]>`select password_hash from students where id = ${studentId}`;
   if (!s?.password_hash || !(await verifyPassword(current, s.password_hash))) throw unauthorized('Senha atual incorreta.', 'INVALID_CREDENTIALS');
   await sql`update students set password_hash = ${await hashPassword(next)} where id = ${studentId}`;
+  const keep = keepToken ? await sha256Hex(keepToken) : '';
+  await sql`delete from student_sessions where student_id = ${studentId} and token_hash <> ${keep}`;
   await audit(sql, { actorType: 'STUDENT', actorId: studentId, action: 'PASSWORD_CHANGED', entity: 'student', entityId: studentId });
 }
 

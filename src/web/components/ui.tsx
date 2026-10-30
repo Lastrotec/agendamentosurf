@@ -26,9 +26,49 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// --- Trava da rolagem do fundo ---
+// O <dialog> nativo não impede a página de rolar por trás no iPhone. Fixamos o <body> na posição atual
+// (sem pulo) e devolvemos a rolagem ao fechar. Contador: janelas empilhadas liberam só na última.
+let locks = 0;
+let savedY = 0;
+let savedPath = '';
+export function lockScroll(): () => void {
+  if (locks++ === 0) {
+    savedY = window.scrollY;
+    savedPath = location.pathname;
+    const b = document.body.style;
+    b.position = 'fixed';
+    b.top = `-${savedY}px`;
+    b.left = '0';
+    b.right = '0';
+    document.documentElement.classList.add('scroll-locked');
+  }
+  let done = false;
+  return () => {
+    if (done) return;
+    done = true;
+    if (--locks > 0) return;
+    const b = document.body.style;
+    b.position = b.top = b.left = b.right = '';
+    document.documentElement.classList.remove('scroll-locked');
+    // Se a janela levou a outra tela, a nova tela começa do topo.
+    window.scrollTo(0, location.pathname === savedPath ? savedY : 0);
+  };
+}
+export const useScrollLock = (active = true) => useEffect(() => (active ? lockScroll() : undefined), [active]);
+
+// Altura visível real (desconta o teclado virtual): usada pelas janelas para não ficarem sob o teclado.
+if (typeof window !== 'undefined' && window.visualViewport) {
+  const vv = window.visualViewport;
+  const set = () => document.documentElement.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+  vv.addEventListener('resize', set);
+  set();
+}
+
 // --- Janela (dialog nativo) ---
 export function Modal({ title, onClose, children, className = '' }: { title: ReactNode; onClose: () => void; children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDialogElement>(null);
+  useScrollLock();
   useEffect(() => {
     const d = ref.current!;
     if (!d.open) d.showModal();
@@ -110,6 +150,13 @@ export const Spinner = ({ label = 'Carregando…' }: { label?: string }) => (
   <div className="card empty">
     <div className="spinner" />
     <p>{label}</p>
+  </div>
+);
+
+/** Esqueleto de carregamento: mostra o formato da tela enquanto os dados chegam. */
+export const Skeleton = ({ rows = 3 }: { rows?: number }) => (
+  <div className="skeleton" aria-busy="true" aria-label="Carregando">
+    {Array.from({ length: rows }, (_, i) => <i key={i} style={{ height: i === 0 ? 120 : 84 }} />)}
   </div>
 );
 

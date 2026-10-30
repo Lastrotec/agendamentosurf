@@ -126,6 +126,8 @@ adminRoutes.post('/security/mfa/enable', async (c) => {
 });
 adminRoutes.post('/security/password', async (c) => {
   const body = await parseJson(c, z.object({ current: password, next: z.string().min(12, 'Use pelo menos 12 caracteres.').max(200) }));
+  if (body.next === body.current) throw badRequest('A nova senha precisa ser diferente da atual.');
+  if (/^(.)\1+$/.test(body.next) || !/\p{L}/u.test(body.next) || !/\d/.test(body.next)) throw badRequest('Use letras e números na nova senha.', 'WEAK_PASSWORD');
   await auth.changePassword(c.get('db')(), c.get('admin').sessionId, c.get('admin').id, body.current, body.next);
   return c.json({ ok: true });
 });
@@ -226,10 +228,30 @@ adminRoutes.get('/agenda', async (c) => {
   });
 });
 
+/** Exceções futuras da agenda (bloqueios e dias com horários próprios) para a tela Horários. */
+adminRoutes.get('/schedule', async (c) => {
+  const sql = c.get('db')();
+  const from = today();
+  const blocks = await sql<{ id: string; place_id: string; date: string; time: string | null; reason: string }[]>`
+    select id, place_id, to_char(date, 'YYYY-MM-DD') as date, time, reason from slot_blocks where date >= ${from} order by date, time nulls first limit 300`;
+  const overrides = await sql<{ place_id: string; date: string; hours: string[] }[]>`
+    select place_id, to_char(date, 'YYYY-MM-DD') as date, to_json(hours) as hours from day_hours where date >= ${from} order by date limit 300`;
+  return c.json({
+    today: from,
+    blocks: blocks.map((b) => ({ id: b.id, place: b.place_id, date: b.date, time: b.time, reason: b.reason })),
+    overrides: overrides.map((o) => ({ place: o.place_id, date: o.date, hours: o.hours })),
+  });
+});
+
 adminRoutes.post('/blocks', async (c) => {
   const b = await parseJson(c, blockSchema);
-  await getPlace(c.get('db')(), b.place);
-  await c.get('db')()`insert into slot_blocks (place_id, date, time, reason) values (${b.place}, ${b.date}, ${b.time}, ${b.reason})`;
+  const sql = c.get('db')();
+  await getPlace(sql, b.place);
+  if (b.date < today()) throw badRequest('Escolha hoje ou uma data futura.');
+  const [dup] = await sql<{ id: string }[]>`
+    select id from slot_blocks where place_id = ${b.place} and date = ${b.date} and time is not distinct from ${b.time} limit 1`;
+  if (!dup) await sql`insert into slot_blocks (place_id, date, time, reason) values (${b.place}, ${b.date}, ${b.time}, ${b.reason})`;
+  await audit(sql, { actorType: 'ADMIN', actorId: c.get('admin').id, action: 'SLOT_BLOCKED', entity: 'place', entityId: b.place });
   return c.json({ ok: true }, 201);
 });
 adminRoutes.delete('/blocks/:id', async (c) => {
@@ -239,8 +261,16 @@ adminRoutes.delete('/blocks/:id', async (c) => {
 adminRoutes.post('/day-hours', async (c) => {
   const b = await parseJson(c, dayHoursSchema);
   const sql = c.get('db')();
-  if (b.hours === null) await sql`delete from day_hours where place_id = ${b.place} and date = ${b.date}`;
-  else {
+  const place = await getPlace(sql, b.place);
+  if (b.date < today()) throw badRequest('Escolha hoje ou uma data futura.');
+  if (b.hours === null) {
+    // Voltar ao padrão não pode deixar aula fora da agenda (dia extra, ou horário que só existia na exceção).
+    const dow = new Date(`${b.date}T12:00:00Z`).getUTCDay();
+    const rows = await selectBookings(sql, `place_id = $1 and date = $2 and status in ('pending_payment','awaiting','confirmed')`, [b.place, b.date]);
+    const lost = rows.find((r) => !place.weekdays.includes(dow) || (place.schedule === 'fixed' && !place.hours.includes(r.time)));
+    if (lost) throw conflict(`Há uma aula às ${lost.time} que só existe nesta exceção. Remarque-a antes.`);
+    await sql`delete from day_hours where place_id = ${b.place} and date = ${b.date}`;
+  } else {
     if (!b.hours.length) throw badRequest('Marque pelo menos um horário ou bloqueie o dia.');
     const hours = [...new Set(b.hours)].sort();
     const conflictRows = await selectBookings(sql, `place_id = $1 and date = $2 and status in ('pending_payment','awaiting','confirmed') and not (time = any($3::text[]))`, [b.place, b.date, pgArray(hours)]);
@@ -516,6 +546,22 @@ adminRoutes.put('/places/:id', async (c) => {
   const sql = c.get('db')();
   await getPlace(sql, id);
   if (p.schedule === 'fixed' && !p.hours.length) throw badRequest('Informe ao menos um horário de aula.');
+  // Não deixa aula marcada "órfã": dia da semana tirado, horário fixo removido ou vagas abaixo do já reservado.
+  // Dias com horários próprios (exceções) não dependem da semana padrão.
+  const weekdays = [...new Set(p.weekdays)];
+  const hours = [...new Set(p.hours)];
+  const live = await sql<{ date: string; time: string; dow: number; n: number; custom: boolean }[]>`
+    select to_char(b.date, 'YYYY-MM-DD') as date, b.time, extract(dow from b.date)::int as dow, sum(b.people)::int as n,
+      exists (select 1 from day_hours d where d.place_id = b.place_id and d.date = b.date) as custom
+    from bookings b
+    where b.place_id = ${id} and b.starts_at > now() and b.status in ('pending_payment','awaiting','confirmed')
+      and (b.status <> 'pending_payment' or b.hold_until > now() or b.pix_claimed_at is not null)
+    group by b.place_id, b.date, b.time order by b.date, b.time`;
+  for (const r of live) {
+    const off = !r.custom && (!weekdays.includes(r.dow) || (p.schedule === 'fixed' && !hours.includes(r.time)));
+    if (off) throw conflict(`Há aula marcada em ${fmtDay(r.date)} às ${r.time}, que ficaria fora da nova agenda. Remarque-a antes.`, 'SCHEDULE_CONFLICT');
+    if (r.n > p.capacity) throw conflict(`${fmtDay(r.date)} às ${r.time} já tem ${r.n} pessoas marcadas. Use pelo menos ${r.n} vagas.`, 'SCHEDULE_CONFLICT');
+  }
   await sql`
     update places set name = ${p.name}, short = ${p.short}, address = ${p.address}, meeting = ${p.meeting}, description = ${p.description},
       modality = ${p.modality}, capacity = ${p.capacity}, weekdays = ${pgArray([...new Set(p.weekdays)].sort())}::int[], hours = ${pgArray([...new Set(p.hours)].sort())}::text[],
