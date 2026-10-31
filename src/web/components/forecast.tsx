@@ -1,7 +1,7 @@
 // Previsão do mar: cartões do agendamento, gráfico da maré e a tela "Previsão".
 import { useState } from 'react';
 
-import { advice, compass, dayHours, type ForecastData, type ForecastHour, hourAt, lastDate, rate, type Rating, tidePct, tides, tideTrend, windKind } from '../../shared/forecast';
+import { advice, compass, dayHours, type ForecastData, type ForecastHour, hourAt, lastDate, rate, type Rating, tidePct, tides, tideTrend, waveEnergy, windTone } from '../../shared/forecast';
 import { addHour, slotBookable } from '../../shared/slots';
 import { useApi } from '../lib/hooks';
 import { clock, fmt, fmtLong, fmtShort, nowHourLocal, today } from '../lib/format';
@@ -20,6 +20,21 @@ const range = (vals: number[], f: (n: number) => string | number) => {
   return a === b ? String(a) : `${a}–${b}`;
 };
 const surf = (h: ForecastHour) => h.surf ?? h.wave;
+const sec = (v: number | null | undefined) => (v == null ? '' : `${Math.round(v)}s`);
+/** Período primário (de pico), como na tabela do Surfguru; sem ele, o médio. */
+const primary = (h: ForecastHour) => h.peakPeriod ?? h.period;
+const TONE_LABEL = { terral: 'terral', fraco: 'fraco', cruzado: 'cruzado', maral: 'maral', '': '' } as const;
+
+/** Uma ondulação: altura, período e de onde vem. */
+function Train({ h, p, d }: { h: number | null | undefined; p: number | null | undefined; d: number | null | undefined }) {
+  if (h == null || h < 0.05) return <span className="fc-none">—</span>;
+  return (
+    <span className="fc-train">
+      <b>{m1(h)}</b>
+      <small>{sec(p)} <Dir deg={d ?? null} />{compass(d ?? null)}</small>
+    </span>
+  );
+}
 
 export function Dir({ deg }: { deg: number | null }) {
   if (deg == null) return null;
@@ -45,7 +60,7 @@ export function FcSource({ fc }: { fc: ForecastResponse | null }) {
       <Icon name="info" />{' '}
       {fc.data ? (
         <>
-          Onda estimada na praia a partir dos modelos de mar aberto (Open-Meteo), considerando a exposição de cada pico. Atualizado {fc.fetchedAt ? `às ${clock(fc.fetchedAt)}` : ''}
+          {fc.data.source || 'Open-Meteo'}. Onda na beira estimada pela exposição de cada pico. Atualizado {fc.fetchedAt ? `às ${clock(fc.fetchedAt)}` : ''}
           {fc.stale ? ' (dados antigos: a próxima coleta está atrasada)' : ''}. Maré modelada. Conferir:{' '}
           <a className="link" href="https://www.marinha.mil.br/chm/tabuas-de-mare" target="_blank" rel="noopener noreferrer">
             tábua da Marinha
@@ -67,7 +82,7 @@ export function ConditionsCard({ place, date, time, fc, compact }: { place: Plac
   if (date > lastDate(data)) return <div className="fc-card empty-fc"><Icon name="wave" /><p>A previsão do mar para {fmtShort(date)} fica disponível até 7 dias antes da aula.</p></div>;
   const h = hourAt(data, date, hour);
   if (!h) return null;
-  const r = rate(place.facing, h), trend = tideTrend(data, date, hour), pct = tidePct(data, date, hour), kind = windKind(place.facing, h.windDir);
+  const r = rate(place.facing, h), trend = tideTrend(data, date, hour), pct = tidePct(data, date, hour), tone = windTone(place.facing, h.windDir, h.wind);
   return (
     <div className="fc-card">
       <div className="fc-head">
@@ -78,9 +93,9 @@ export function ConditionsCard({ place, date, time, fc, compact }: { place: Plac
         <RatePill r={r} />
       </div>
       <div className="fc-grid">
-        <div><small>ONDA NA PRAIA</small><strong>{m1(surf(h))} m</strong><span><Dir deg={h.dir} />{compass(h.dir)} · {Math.round(h.period ?? 0)} s</span></div>
-        <div><small>SWELL (MAR ABERTO)</small><strong>{m1(h.swell)} m</strong><span><Dir deg={h.swellDir} />{compass(h.swellDir)} · {Math.round(h.swellPeriod ?? 0)} s</span></div>
-        <div><small>VENTO</small><strong>{h.wind == null ? '—' : `${Math.round(h.wind)} km/h`}</strong><span><Dir deg={h.windDir} />{compass(h.windDir)}{kind && <> · <b className={`wk ${kind}`}>{kind}</b></>}</span></div>
+        <div><small>ONDULAÇÃO</small><strong>{m1(h.wave)} m</strong><span><Dir deg={h.dir} />{compass(h.dir)} · {Math.round(primary(h) ?? 0)} s</span></div>
+        <div><small>NA BEIRA (AULA)</small><strong>~{m1(surf(h))} m</strong><span>estimativa no pico</span></div>
+        <div><small>VENTO</small><strong>{h.wind == null ? '—' : `${Math.round(h.wind)} km/h`}</strong><span><Dir deg={h.windDir} />{compass(h.windDir)}{tone && <> · <b className={`wk ${tone}`}>{TONE_LABEL[tone]}</b></>}</span></div>
         <div><small>MARÉ</small><strong>{trend ? trend[0].toUpperCase() + trend.slice(1) : '—'}</strong><span className="tide-bar"><i style={{ width: `${pct ?? 0}%` }} /></span></div>
       </div>
       {!compact && (
@@ -161,7 +176,7 @@ export function DayForecastCard({ place, day, fc }: { place: Place; day: DaySlot
       </div>
       <div className="fc-grid">
         <div><small>MELHOR HORÁRIO</small><strong>{best ? hh(best.h.hour) : '—'}</strong><span>{best?.r.label}</span></div>
-        <div><small>ONDA NAS AULAS</small><strong>{range(hs.map((h) => surf(h) ?? 0), m1)} m</strong><span>{best && <><Dir deg={best.h.dir} />{compass(best.h.dir)} · {Math.round(best.h.period ?? 0)} s</>}</span></div>
+        <div><small>ONDULAÇÃO NAS AULAS</small><strong>{range(hs.map((h) => h.wave ?? 0), m1)} m</strong><span>{best && <><Dir deg={best.h.dir} />{compass(best.h.dir)} · {Math.round(primary(best.h) ?? 0)} s</>}</span></div>
         <div><small>VENTO</small><strong>{winds.length ? range(winds, Math.round) : '—'} km/h</strong><span>{best && <><Dir deg={best.h.windDir} />{compass(best.h.windDir)}</>}</span></div>
         <div><small>MARÉS</small><strong className="fc-tide-mini">{tides(data, day.date).map((t) => <span key={t.time}>{t.type === 'alta' ? '▲' : '▼'} {t.time}<br /></span>)}</strong></div>
       </div>
@@ -174,7 +189,7 @@ export function SlotForecast({ place, date, time, fc }: { place: Place; date: st
   const h = fc?.data ? hourAt(fc.data, date, Number(time.slice(0, 2))) : null;
   const r = rate(place.facing, h);
   if (!h || !r) return null;
-  return <span className={`slot-fc ${r.cls}`}><i />{m1(surf(h))} m · {r.label}</span>;
+  return <span className={`slot-fc ${r.cls}`}><i />{m1(h.wave)} m · {r.label}</span>;
 }
 
 /** Tela "Previsão" (aluno e instrutor). */
@@ -201,12 +216,16 @@ export function ForecastPage({ places, onBook, slotsFor }: { places: Place[]; on
           .sort((a, b) => b.r.score - a.r.score)[0] ?? null);
   const hours = data ? dayHours(data, sel).filter((h) => h.hour >= 5 && h.hour <= 18) : [];
   const best = dayBest(sel);
-  const waves = hours.map((h) => surf(h) ?? 0);
+  const all = data ? dayHours(data, sel) : [];
+  const totals = all.map((h) => h.wave ?? 0);
+  const beach = hours.map((h) => surf(h) ?? 0);
+  const energies = all.map((h) => waveEnergy(h)).filter((v): v is number => v != null);
+  const water = all.map((h) => h.water).filter((v): v is number => v != null);
   const sun = data?.sun?.[sel];
   const daySlots = slotsFor?.(spot, sel);
   return (
     <div className="page-content">
-      <PageTitle title="Previsão do mar." sub="Onda estimada na praia, vento e maré hora a hora nos picos das aulas." action={<Btn variant="secondary" icon="refresh" onClick={reload}>Atualizar</Btn>} />
+      <PageTitle title="Previsão do mar." sub="Ondulação, vento e maré hora a hora nos picos das aulas." action={<Btn variant="secondary" icon="refresh" onClick={reload}>Atualizar</Btn>} />
       <div className="row between wrap fc-top">
         <div className="seg">
           {others.map((id) => (
@@ -224,7 +243,7 @@ export function ForecastPage({ places, onBook, slotsFor }: { places: Place[]; on
         <>
           <div className="fc-days">
             {days.map((d) => {
-              const b = dayBest(d), max = Math.max(...dayHours(data, d).map((h) => surf(h) ?? 0));
+              const b = dayBest(d), max = Math.max(...dayHours(data, d).map((h) => h.wave ?? 0));
               return (
                 <button key={d} type="button" className={`fc-day ${d === sel ? 'active' : ''}`} onClick={() => setDate(d)}>
                   <small>{fmt(d, { weekday: 'short' }).replace('.', '')} {fmt(d, { day: '2-digit' })}</small>
@@ -242,8 +261,11 @@ export function ForecastPage({ places, onBook, slotsFor }: { places: Place[]; on
                   <RatePill r={best?.r ?? null} />
                 </div>
                 <div className="fc-stats">
-                  <div><small>ONDA NA PRAIA</small><strong>{waves.length ? `${m1(Math.min(...waves))}–${m1(Math.max(...waves))} m` : '—'}</strong></div>
+                  <div><small>ONDULAÇÃO</small><strong>{totals.length ? range(totals, m1) : '—'} m</strong></div>
+                  <div><small>NA BEIRA (AULA)</small><strong>{beach.length ? `~${range(beach, m1)} m` : '—'}</strong></div>
                   <div><small>MELHOR HORÁRIO DE AULA</small><strong>{best ? `${hh(best.hr)} · ${best.r.label}` : 'Sem aula neste dia'}</strong></div>
+                  {energies.length > 0 && <div><small>ENERGIA MÁXIMA</small><strong>{Math.max(...energies)} kJ</strong></div>}
+                  {water.length > 0 && <div><small>ÁGUA</small><strong>{range(water, Math.round)} °C</strong></div>}
                   {sun && <div><small>SOL</small><strong>{sun.rise} – {sun.set}</strong></div>}
                   <div><small>MARÉS</small><strong className="fc-tide-list">{tides(data, sel).map((t) => `${t.type === 'alta' ? '▲' : '▼'} ${t.time}`).join(' · ') || '—'}</strong></div>
                 </div>
@@ -251,30 +273,73 @@ export function ForecastPage({ places, onBook, slotsFor }: { places: Place[]; on
                 <p className="legal-note"><span className="legend-band" /> Horários de aula {p.schedule === 'tide' ? 'definidos pela maré' : `em ${p.short}`}</p>
               </section>
               <section className="card fc-table spacer">
-                <div className="fc-row head"><span>Hora</span><span>Condição</span><span>Onda</span><span>Swell</span><span>Vento</span><span>Maré</span><span /></div>
-                {hours.map((h) => {
-                  const r = rate(p.facing, h), lesson = isClassDay(sel) && lessonHours(sel).includes(h.hour), kind = windKind(p.facing, h.windDir), trend = tideTrend(data, sel, h.hour);
-                  const slot = daySlots?.slots.find((s) => Number(s.time.slice(0, 2)) === h.hour);
-                  return (
-                    <div key={h.time} className={`fc-row ${lesson ? 'lesson' : ''}`}>
-                      <span className="hr">{hh(h.hour)}</span>
-                      <span><RatePill r={r} /></span>
-                      <span><b>{m1(surf(h))} m</b><Dir deg={h.dir} /><small>{Math.round(h.period ?? 0)}s</small></span>
-                      <span>{m1(h.swell)} m<small>{Math.round(h.swellPeriod ?? 0)}s {compass(h.swellDir)}</small></span>
-                      <span>{h.wind == null ? '—' : <b>{Math.round(h.wind)}</b>}<Dir deg={h.windDir} /><small className={`wk ${kind}`}>{kind}</small></span>
-                      <span>{trend === 'enchendo' ? '↗' : trend === 'secando' ? '↘' : '→'} <small>{trend ?? ''}</small></span>
-                      <span>{onBook && slot && slotBookable(slot) ? <button type="button" className="btn small" onClick={() => onBook(spot, sel, slot.time)}>Agendar</button> : lesson ? <small className="muted">aula</small> : null}</span>
-                    </div>
-                  );
-                })}
+                <div className="fc-scroll" tabIndex={0} aria-label="Tabela da previsão hora a hora (role para os lados)">
+                  <table>
+                    <thead>
+                      <tr className="grp">
+                        <th rowSpan={2} className="hr">Hora</th>
+                        <th rowSpan={2}>Aula</th>
+                        <th colSpan={2}>Total</th>
+                        <th>Swell 1</th>
+                        <th>Swell 2</th>
+                        <th>Vagas</th>
+                        <th rowSpan={2}>Vento<br /><small>km/h · rajada</small></th>
+                        <th rowSpan={2}>Energia<br /><small>kJ</small></th>
+                        <th rowSpan={2}>Maré</th>
+                        {onBook && <th rowSpan={2}><span className="sr-only">Agendar</span></th>}
+                      </tr>
+                      <tr className="sub">
+                        <th>m</th>
+                        <th>período</th>
+                        <th>m · s · dir</th>
+                        <th>m · s · dir</th>
+                        <th>m · s · dir</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {hours.map((h) => {
+                        const r = rate(p.facing, h), lesson = isClassDay(sel) && lessonHours(sel).includes(h.hour), tone = windTone(p.facing, h.windDir, h.wind), trend = tideTrend(data, sel, h.hour);
+                        const slot = daySlots?.slots.find((s) => Number(s.time.slice(0, 2)) === h.hour);
+                        return (
+                          <tr key={h.time} className={lesson ? 'lesson' : ''}>
+                            <th scope="row" className="hr">{hh(h.hour)}</th>
+                            <td><RatePill r={r} /><small className="fc-beach">~{m1(surf(h))} m na beira</small></td>
+                            <td className="fc-total"><b>{m1(h.wave)}</b><Dir deg={h.dir} /><small>{compass(h.dir)}</small></td>
+                            <td><b>{sec(primary(h))}</b></td>
+                            <td><Train h={h.swell} p={h.swellPeriod} d={h.swellDir} /></td>
+                            <td><Train h={h.swell2} p={h.swell2Period} d={h.swell2Dir} /></td>
+                            <td><Train h={h.windWave} p={h.windWavePeriod} d={h.windWaveDir} /></td>
+                            <td>
+                              {h.wind == null ? '—' : (
+                                <span className={`fc-wind ${tone}`} title={TONE_LABEL[tone]}>
+                                  <Dir deg={h.windDir} />
+                                  <b>{Math.round(h.wind)}</b>
+                                  {h.gust != null && <small>{Math.round(h.gust)}</small>}
+                                  <small>{compass(h.windDir)} {TONE_LABEL[tone]}</small>
+                                </span>
+                              )}
+                            </td>
+                            <td><b>{waveEnergy(h) ?? '—'}</b></td>
+                            <td>{h.tide == null ? '—' : <>{trend === 'enchendo' ? '↗' : trend === 'secando' ? '↘' : '→'} <small>{m1(h.tide)} m</small></>}</td>
+                            {onBook && <td>{slot && slotBookable(slot) ? <button type="button" className="btn small" onClick={() => onBook(spot, sel, slot.time)}>Agendar</button> : lesson ? <small className="muted">aula</small> : null}</td>}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </section>
             </div>
             <aside>
               <section className="card">
                 <h3>Como ler</h3>
                 <div className="legend"><span className="rate great"><i />Excelente</span><span className="rate good"><i />Bom</span><span className="rate fair"><i />Regular</span><span className="rate poor"><i />Difícil</span></div>
+                <div className="legend spacer"><b className="wk terral">terral</b><b className="wk fraco">fraco</b><b className="wk cruzado">cruzado</b><b className="wk maral">maral</b></div>
                 <p className="muted spacer" style={{ fontSize: 12, lineHeight: 1.7 }}>
-                  A <strong>onda na praia</strong> é calculada a partir do swell do mar aberto, do período e da direção: o Farol é mais abrigado que Jaguaribe. A nota pensa em <strong>aula</strong>: onda de 0,5 a 1,2 m e vento <b className="wk terral">terral</b> são o ideal. Vento <b className="wk maral">maral</b> forte deixa o mar mexido.
+                  <strong>Total</strong> é a altura significativa da ondulação no ponto de mar mais próximo do pico, com o período primário. Ela se divide em <strong>swell 1</strong> (principal), <strong>swell 2</strong> e <strong>vagas</strong> (mar do vento local). <strong>Energia</strong> acima de 100 kJ já é surfável na maioria dos picos.
+                </p>
+                <p className="muted" style={{ fontSize: 12, lineHeight: 1.7 }}>
+                  A <strong>nota de aula</strong> usa a onda estimada <strong>na beira</strong> de cada pico (o Farol é mais abrigado que Jaguaribe): de 0,5 a 1,2 m com vento terral ou fraco é o ideal.
                 </p>
               </section>
               {onBook && <div className="spacer"><Btn full icon="calendar" onClick={() => onBook(spot, sel, '')}>Agendar uma aula</Btn></div>}

@@ -178,3 +178,35 @@ dialog:focus{outline:none}
 html.kb-open .auth-logo{display:none}
 html.kb-open dialog{padding-top:14px;padding-bottom:14px}
 html.kb-open .modal-head{top:-14px;margin-top:-14px;padding-top:12px}
+
+/* Previsão: tabela hora a hora no formato do Surfguru (Total · Swell 1 · Swell 2 · Vagas · Vento · Energia · Maré) */
+.wk.fraco{color:#2a6fb0}.wk.cruzado{color:#b45f06}.dark .wk.fraco{color:#8cc0f0}.dark .wk.cruzado{color:#f0b070}
+.wk.terral,.wk.fraco,.wk.cruzado,.wk.maral{text-transform:lowercase}
+.legend .wk{padding:2px 8px;border-radius:999px;background:var(--tint)}
+.fc-table{padding:6px 0}
+.fc-scroll{position:relative;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.fc-scroll:focus-visible{outline:2px solid var(--brand,#1f8f8a);outline-offset:-2px}
+.fc-scroll table{border-collapse:separate;border-spacing:0;width:100%;min-width:760px;font-size:12px}
+.fc-scroll th,.fc-scroll td{padding:8px 8px;text-align:left;vertical-align:middle;border-bottom:1px solid var(--line);white-space:nowrap}
+.fc-scroll thead th{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);border-bottom:0;padding-top:4px;padding-bottom:4px}
+.fc-scroll thead tr.sub th{border-bottom:1px solid var(--line);font-weight:600;letter-spacing:.3px;text-transform:none}
+.fc-scroll thead small{font-weight:600;letter-spacing:.2px;text-transform:none}
+.fc-scroll tbody tr:last-child>*{border-bottom:0}
+.fc-scroll .hr{position:sticky;left:0;z-index:1;background:var(--surface);font:700 13px 'Manrope',sans-serif;padding-left:16px}
+.fc-scroll thead .hr{font-size:9px}
+.fc-scroll tr.lesson>*{background:var(--tint)}
+.fc-scroll td small{display:block;font-size:10px;color:var(--muted);margin-top:1px}
+.fc-scroll td b{font-weight:700}
+.fc-scroll .dir{width:13px;height:13px;vertical-align:-2px}
+.fc-total b{font-size:14px;margin-right:3px}
+.fc-train{display:inline-flex;flex-direction:column}
+.fc-train small{display:flex!important;align-items:center;gap:2px}
+.fc-none{color:var(--muted)}
+.fc-beach{white-space:nowrap}
+.fc-wind{display:inline-grid;grid-template-columns:auto auto auto;align-items:center;column-gap:4px;padding:3px 7px;border-radius:8px;background:var(--tint)}
+.fc-wind>small:last-child{grid-column:1/-1;margin:0}
+.fc-wind.terral{background:#dff3e6;color:#145c34}.fc-wind.fraco{background:#e1eefb;color:#1d5a92}.fc-wind.cruzado{background:#fdebd6;color:#8a4704}.fc-wind.maral{background:#fbe1dc;color:#8e2f1e}
+.fc-wind small{color:inherit!important;opacity:.85}
+.dark .fc-wind.terral{background:#173a26;color:#a6e6bf}.dark .fc-wind.fraco{background:#172c42;color:#a9d0f5}.dark .fc-wind.cruzado{background:#3f2a12;color:#f5c993}.dark .fc-wind.maral{background:#43201a;color:#f5b3a5}
+.fc-layout>*{min-width:0}
+@media(max-width:700px){.fc-scroll table{min-width:700px;font-size:11px}.fc-scroll th,.fc-scroll td{padding:7px 6px}.fc-scroll .hr{padding-left:12px;box-shadow:1px 0 0 var(--line)}}

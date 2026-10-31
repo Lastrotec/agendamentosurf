@@ -1,17 +1,26 @@
-// Motor de ondas: transforma a previsão de mar aberto (Open-Meteo) na onda estimada em cada pico
-// e dá uma nota pensando em aula. Puro: roda igual no servidor (ao gravar) e no app (ao exibir).
+// Motor de ondas. Referência: Surfguru — mesmos modelos (ondas do WaveWatch III/NOAA GFS-Wave, vento do
+// NOAA GFS) e mesma leitura: altura total, período e direção, ondulações separadas (swell 1, swell 2 e
+// vagas), vento com rajada e cor pela direção na praia, energia e potência das ondas, maré.
+// Por cima disso: a onda estimada na beira de cada pico e uma nota pensando em aula.
+// Puro: roda igual no servidor (ao gravar) e no app (ao exibir).
 
 export interface ForecastHour {
   time: string; // YYYY-MM-DDTHH:00 (hora local)
   date: string;
   hour: number;
-  wave: number | null; // altura significativa no mar aberto (m)
-  period: number | null;
+  wave: number | null; // altura total (significativa) no ponto do modelo (m)
+  period: number | null; // período médio (s)
+  peakPeriod?: number | null; // período de pico (s): o "período primário" da tabela
   dir: number | null;
-  swell: number | null;
+  swell: number | null; // swell 1 (ondulação principal)
   swellPeriod: number | null;
   swellDir: number | null;
-  windWave: number | null;
+  swell2?: number | null; // swell 2 (ondulação secundária)
+  swell2Period?: number | null;
+  swell2Dir?: number | null;
+  windWave: number | null; // vagas (mar de vento local)
+  windWavePeriod?: number | null;
+  windWaveDir?: number | null;
   surf: number | null; // onda estimada quebrando no pico (m)
   tide: number | null; // nível do mar em relação ao médio (m)
   wind: number | null; // km/h
@@ -19,6 +28,7 @@ export interface ForecastHour {
   gust: number | null;
   temp: number | null;
   code: number | null;
+  water?: number | null; // temperatura da água (°C)
 }
 
 export interface ForecastData {
@@ -36,6 +46,7 @@ export interface SpotModel {
 }
 
 const G = 9.81;
+const RHO = 1025; // densidade da água do mar (kg/m³)
 const COMPASS = ['N', 'NNE', 'NE', 'ENE', 'L', 'ESE', 'SE', 'SSE', 'S', 'SSO', 'SO', 'OSO', 'O', 'ONO', 'NO', 'NNO'];
 export const compass = (deg: number | null) => (deg == null ? '' : COMPASS[Math.round((((deg % 360) + 360) % 360) / 22.5) % 16]);
 export const angleDiff = (a: number, b: number) => {
@@ -69,6 +80,27 @@ export function surfAt(h: Pick<ForecastHour, 'wave' | 'period' | 'dir' | 'swell'
   const hs = breakingHeight(swell * exposure(h.swellDir ?? h.dir, m), h.swellPeriod ?? h.period ?? 8);
   const hw = breakingHeight(windSea * exposure(h.dir, m), Math.min(h.period ?? 5, 7));
   return Math.round(Math.sqrt(hs * hs + hw * hw) * m.waveFactor * 100) / 100;
+}
+
+/** Período usado nas contas de energia: o de pico (primário), senão o médio. */
+const energyPeriod = (h: Pick<ForecastHour, 'period' | 'peakPeriod'>) => h.peakPeriod ?? h.period ?? null;
+
+/**
+ * Energia da onda pela teoria linear (como o Surfguru explica): densidade E = ρ·g·H²/16 (J/m²) somada
+ * ao longo de um comprimento de onda em águas profundas, L = g·T²/2π. Resultado em kJ por metro de crista:
+ * cerca de 100 kJ (1 m com 10 s) já é surfável na maioria dos picos.
+ */
+export function waveEnergy(h: Pick<ForecastHour, 'wave' | 'period' | 'peakPeriod'>): number | null {
+  const t = energyPeriod(h);
+  if (h.wave == null || t == null) return null;
+  return Math.round(((RHO * G * h.wave ** 2) / 16) * ((G * t * t) / (2 * Math.PI)) / 1000);
+}
+
+/** Potência (fluxo de energia) por metro de frente de onda: P = ρ·g²·H²·T / 64π, em kW/m. */
+export function wavePower(h: Pick<ForecastHour, 'wave' | 'period' | 'peakPeriod'>): number | null {
+  const t = energyPeriod(h);
+  if (h.wave == null || t == null) return null;
+  return Math.round(((RHO * G * G * h.wave ** 2 * t) / (64 * Math.PI) / 1000) * 10) / 10;
 }
 
 export const hourAt = (d: ForecastData | null, date: string, hour: number) => d?.hours.find((h) => h.date === date && h.hour === hour) ?? null;
@@ -132,6 +164,18 @@ export function windKind(facing: number, windDir: number | null): WindKind {
   if (windDir == null) return '';
   const d = angleDiff(windDir, (facing + 180) % 360);
   return d <= 45 ? 'terral' : d >= 135 ? 'maral' : 'lateral';
+}
+
+/**
+ * Cor do vento como no Surfguru: verde terral, azul fraco (qualquer direção), laranja cruzado, vermelho maral.
+ * Fraco: abaixo de 9 km/h (~5 nós), quando a direção quase não muda a onda.
+ */
+export type WindTone = 'terral' | 'fraco' | 'cruzado' | 'maral' | '';
+export function windTone(facing: number, windDir: number | null, speed: number | null): WindTone {
+  if (windDir == null || speed == null) return '';
+  if (speed < 9) return 'fraco';
+  const k = windKind(facing, windDir);
+  return k === 'lateral' ? 'cruzado' : k;
 }
 
 export interface Rating {
