@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { imageUrl, PLANS, type PlanId } from '../../shared/domain';
 import { Icon } from '../components/icons';
-import { InstallBanner, InstallGuide, PushCard } from '../components/install';
+import { InstallBanner, InstallGuide } from '../components/install';
 import { Btn, Detail, Empty, Modal, Multiline, PageTitle, Spinner } from '../components/ui';
 import { firstName, fmt, money, today } from '../lib/format';
 import { useApi } from '../lib/hooks';
@@ -129,7 +129,6 @@ export function Home() {
               <Btn icon="arrow" onClick={() => navigate('/agendar')}>Agendar minha aula</Btn>
             </div>
           </section>
-          {me && <PushCard who="student" hours={c.reminders.hours} />}
           <div className="section-head">
             <h2>Sua próxima sessão</h2>
             <button type="button" className="text-btn" onClick={() => requireLogin(() => navigate('/aulas'))}>Ver minhas aulas <Icon name="arrow" /></button>
