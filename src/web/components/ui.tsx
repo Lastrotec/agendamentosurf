@@ -71,7 +71,12 @@ export function Modal({ title, onClose, children, className = '' }: { title: Rea
   useScrollLock();
   useEffect(() => {
     const d = ref.current!;
-    if (!d.open) d.showModal();
+    if (!d.open) {
+      d.showModal();
+      // O navegador foca o primeiro botão (o X) e no celular ele aparece "aceso". O foco fica na janela:
+      // o teclado continua funcionando (Tab vai para o primeiro campo) e o leitor de tela anuncia o título.
+      d.focus({ preventScroll: true });
+    }
     const close = () => onClose();
     d.addEventListener('close', close);
     return () => d.removeEventListener('close', close);
@@ -79,6 +84,7 @@ export function Modal({ title, onClose, children, className = '' }: { title: Rea
   return (
     <dialog
       ref={ref}
+      tabIndex={-1}
       id="modal"
       className={className}
       onClick={(e) => {
