@@ -1,11 +1,10 @@
 // App do aluno: navegação, tema, avisos (sino), cadastro e etapa obrigatória das notificações.
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 
-import { ForecastPage } from '../components/forecast';
 import { Icon, type IconName } from '../components/icons';
-import { PushGate } from '../components/install';
+import { Onboarding } from '../components/Onboarding';
 import { Logo } from '../components/Logo';
-import { Btn, Empty, Modal, Spinner } from '../components/ui';
+import { Btn, Empty, Modal, Skeleton, Spinner } from '../components/ui';
 import { api, cachedGet } from '../lib/api';
 import { ago, initials } from '../lib/format';
 import { navigate, usePath, useSearch } from '../lib/router';
@@ -13,11 +12,22 @@ import { useTheme } from '../lib/theme';
 import { isStandalone } from '../pwa/pwa';
 import type { Bootstrap } from '../lib/types';
 import { AuthModal } from './Auth';
-import { Book } from './Book';
 import { LessonModal, LessonsPage } from './Lessons';
 import { Boards, Home, InstallPage, Places, Privacy } from './Pages';
-import { Profile } from './Profile';
 import { StoreProvider, useStore } from './store';
+
+// Telas secundárias carregam sob demanda (o início abre mais rápido) e são pré-carregadas em segundo plano.
+const loadBook = () => import('./Book');
+const loadForecast = () => import('../components/forecast');
+const loadProfile = () => import('./Profile');
+const Book = lazy(() => loadBook().then((m) => ({ default: m.Book })));
+const ForecastPage = lazy(() => loadForecast().then((m) => ({ default: m.ForecastPage })));
+const Profile = lazy(() => loadProfile().then((m) => ({ default: m.Profile })));
+function prefetchScreens() {
+  const run = () => void Promise.all([loadBook(), loadForecast(), loadProfile()]).catch(() => {});
+  if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 4000 });
+  else setTimeout(run, 2500);
+}
 
 function NoticesModal({ onClose }: { onClose: () => void }) {
   const { me, reloadMe } = useStore();
@@ -67,6 +77,7 @@ function Shell() {
     addEventListener('offline', on);
     return () => (removeEventListener('online', on), removeEventListener('offline', on));
   }, []);
+  useEffect(prefetchScreens, []);
   const c = boot.config;
   const nav: [string, IconName, string][] = [
     ['/', 'home', 'Início'],
@@ -137,7 +148,7 @@ function Shell() {
             )}
           </div>
         </header>
-        {page}
+        <Suspense fallback={<Skeleton rows={3} />}>{page}</Suspense>
         <footer className="footer">
           <span><Icon name="wave" /> {c.school.toUpperCase()} · {c.instructor.toUpperCase()}</span>
           <span>{c.texts.footer} · <a className="link" href="/privacidade" onClick={(e) => (e.preventDefault(), navigate('/privacidade'))}>Privacidade</a></span>
@@ -146,10 +157,17 @@ function Shell() {
       {lessonId && me && <LessonModal id={lessonId} payNow={search.get('pagar') === '1'} onClose={() => navigate('/aulas', { scroll: false })} />}
       {notices && <NoticesModal onClose={() => setNotices(false)} />}
       <AuthModal />
-      {me && <PushGate who="student" />}
+      {!meLoading && <Onboarding who="student" loggedIn={!!me} />}
     </div>
   );
 }
+
+/** Formato da tela inicial enquanto os dados chegam (em vez de tela vazia). */
+const BootSkeleton = () => (
+  <div className="main boot-skeleton" aria-busy="true" aria-label="Carregando">
+    <Skeleton rows={4} />
+  </div>
+);
 
 export function StudentApp() {
   const [boot, setBoot] = useState<Bootstrap | null>(null);
@@ -166,7 +184,7 @@ export function StudentApp() {
         <Btn icon="refresh" onClick={() => location.reload()}>Tentar de novo</Btn>
       </div>
     );
-  if (!boot) return null;
+  if (!boot) return <BootSkeleton />;
   return (
     <StoreProvider boot={boot}>
       <Shell />

@@ -109,7 +109,7 @@ studentRoutes.post('/profile', async (c) => {
 
 studentRoutes.post('/password', async (c) => {
   const body = await parseJson(c, z.object({ current: password, next: password }));
-  await auth.changePassword(c.get('db')(), c.get('studentId'), body.current, body.next);
+  await auth.changePassword(c.get('db')(), c.get('studentId'), body.current, body.next, getCookie(c, auth.STUDENT_COOKIE));
   return c.json({ ok: true });
 });
 

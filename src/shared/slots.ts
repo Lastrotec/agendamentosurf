@@ -42,7 +42,8 @@ export interface DayInput {
 
 export function daySlots(i: DayInput): DaySlots {
   const { place, date } = i;
-  const classDay = place.weekdays.includes(weekdayOf(date));
+  // Horários definidos pelo instrutor para a data valem mesmo fora dos dias da semana padrão (dia extra).
+  const classDay = place.weekdays.includes(weekdayOf(date)) || !!i.override?.length;
   let tide: DaySlots['tide'] = null;
   let hours = place.hours;
   if (i.override) {

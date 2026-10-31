@@ -4,7 +4,7 @@
    - __VERSION__ é substituído no build; uma nova versão aparece como "Atualizar" no app. */
 const VERSION = '__VERSION__';
 const STATIC_CACHE = `os-static-${VERSION}`;
-const PRECACHE = ['/offline.html', '/brand/logo.svg', '/icons/icon-192.png', '/splash.js'];
+const PRECACHE = ['/offline.html', '/brand/logo.svg', '/brand/logo-branca.svg', '/icons/icon-192.png', '/splash.js'];
 
 self.addEventListener('install', (event) => {
   // Cada arquivo é opcional (ex.: logo.png ainda não enviado) — uma falha não impede a instalação.
@@ -51,8 +51,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Abertura, logo e ícone: rede primeiro (sempre a versão atual), cache só quando estiver offline.
   if (PRECACHE.includes(url.pathname)) {
-    event.respondWith(caches.match(req).then((hit) => hit || fetch(req)));
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(STATIC_CACHE).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req)),
+    );
   }
 });
 

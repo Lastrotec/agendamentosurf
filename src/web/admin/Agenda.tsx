@@ -115,14 +115,14 @@ function ManualBooking({ preset, onClose, onDone }: { preset: { place?: string; 
 }
 
 function DayHoursModal({ place, date, current, onClose, onDone }: { place: Place; date: string; current: string[]; onClose: () => void; onDone: () => void }) {
-  const all = Array.from({ length: 12 }, (_, i) => `${String(6 + i).padStart(2, '0')}:00`);
+  const all = [...new Set([...Array.from({ length: 13 }, (_, i) => `${String(5 + i).padStart(2, '0')}:00`), ...current])].sort();
   const [sel, setSel] = useState<string[]>(current);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
   const save = async (hours: string[] | null) => {
     try {
       await api('/api/admin/day-hours', { body: { place: place.id, date, hours } });
-      toast(hours ? 'Horários do dia atualizados.' : 'Voltou a seguir a maré.');
+      toast(hours ? 'Horários do dia atualizados.' : 'Voltou à semana padrão.');
       onDone();
     } catch (e) {
       setError(errorMessage(e));
@@ -130,15 +130,15 @@ function DayHoursModal({ place, date, current, onClose, onDone }: { place: Place
   };
   return (
     <Modal title={`Horários · ${place.short}`} onClose={onClose}>
-      <p className="muted">{fmtLong(date)}. Marque os horários de aula deste dia (substitui a sugestão pela maré).</p>
-      <div className="chips spacer">
+      <p className="muted">{fmtLong(date)}. Marque os horários de aula deste dia (substitui a semana padrão e a maré só nesta data).</p>
+      <div className="chips grid spacer">
         {all.map((h) => (
           <label key={h}><input type="checkbox" checked={sel.includes(h)} onChange={(e) => setSel(e.target.checked ? [...sel, h] : sel.filter((x) => x !== h))} />{h}</label>
         ))}
       </div>
       {error && <p className="error-text">{error}</p>}
       <div className="modal-actions">
-        <Btn variant="secondary" onClick={() => save(null)}>Seguir a maré</Btn>
+        <Btn variant="secondary" onClick={() => save(null)}>Voltar ao padrão</Btn>
         <Btn icon="check" onClick={() => save(sel)}>Salvar</Btn>
       </div>
     </Modal>
@@ -176,7 +176,7 @@ export function AgendaPage() {
   };
   return (
     <div className="page-content">
-      <PageTitle title="Agenda." sub="Aulas de cada praia, bloqueios e horários pela maré." action={<Btn icon="plus" onClick={() => setManual({})}>Novo agendamento</Btn>} />
+      <PageTitle title="Agenda." sub="Aulas de cada praia, bloqueios e horários pela maré." action={<div className="row wrap"><Btn variant="secondary" icon="clock" onClick={() => navigate('/painel/horarios')}>Gerenciar horários</Btn><Btn icon="plus" onClick={() => setManual({})}>Novo agendamento</Btn></div>} />
       <div className="row between wrap" style={{ marginBottom: 10 }}>
         <strong>{fmt(start, { month: 'long', year: 'numeric' })}</strong>
         <div className="row">
@@ -207,7 +207,7 @@ export function AgendaPage() {
             <h3>
               <span>{p.name}</span>
               <span className="mini-btns">
-                {p.schedule === 'tide' && <button type="button" onClick={() => setHoursFor(p)}>Horários do dia</button>}
+                <button type="button" onClick={() => setHoursFor(p)}>Horários do dia</button>
                 {dayBlock ? <button type="button" onClick={() => unblock(dayBlock.id)}>Liberar o dia</button> : <button type="button" onClick={() => block(p.id, null)}>Bloquear o dia</button>}
               </span>
             </h3>

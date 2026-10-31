@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f6efe4">
+<meta name="theme-color" content="#f7f8f5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,35 +19,61 @@
 <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/icons/favicon-48.png" sizes="48x48" type="image/png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<!-- Tela de abertura do app instalado no iPhone (mesmo fundo e logo da abertura animada) -->
+<link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/icons/startup/light-1320x2868.png">
+<link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/icons/startup/dark-1320x2868.png">
+<link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/icons/startup/light-1290x2796.png">
+<link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/icons/startup/dark-1290x2796.png">
+<link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/icons/startup/light-1206x2622.png">
+<link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/icons/startup/dark-1206x2622.png">
+<link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/icons/startup/light-1179x2556.png">
+<link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/icons/startup/dark-1179x2556.png">
+<link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/icons/startup/light-1284x2778.png">
+<link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/icons/startup/dark-1284x2778.png">
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/icons/startup/light-1170x2532.png">
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/icons/startup/dark-1170x2532.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/icons/startup/light-1125x2436.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/icons/startup/dark-1125x2436.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: light)" href="/icons/startup/light-1242x2688.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/icons/startup/dark-1242x2688.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: light)" href="/icons/startup/light-828x1792.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/icons/startup/dark-828x1792.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: light)" href="/icons/startup/light-750x1334.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/icons/startup/dark-750x1334.png">
+<link rel="preload" href="/brand/logo.svg" as="image" type="image/svg+xml">
+<link rel="preload" href="/brand/logo-branca.svg" as="image" type="image/svg+xml">
 <link rel="preload" href="/fonts/font-8.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-html,body{margin:0;background:#f6efe4}
+html,body{margin:0;background:#f7f8f5}html.dark,html.dark body{background:#101210}
 html.splashing,html.splashing body{overflow:hidden}
-#splash{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 80% at 50% 30%,#fffaf3,#f3ece0);overflow:hidden;cursor:pointer;contain:strict;transition:opacity .8s cubic-bezier(.4,0,.2,1)}
-#splash.out{opacity:0;pointer-events:none}
+#splash{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 80% at 50% 32%,#f9f4ec,#f3ece0);overflow:hidden;cursor:pointer;contain:strict;transition:opacity .6s cubic-bezier(.4,0,.2,1),transform .7s cubic-bezier(.4,0,.2,1)}
+#splash.dark{background:radial-gradient(120% 80% at 50% 32%,#161916,#0f110f)}
+#splash.out{opacity:0;transform:translate3d(0,-3%,0);pointer-events:none}
 #splash *{animation-play-state:paused}#splash.go *{animation-play-state:running}
-.sp-logo{position:absolute;left:50%;top:44%;z-index:3;width:max-content;transform:translate3d(-50%,-50%,0);will-change:transform,opacity;animation:spLogo 1s cubic-bezier(.22,1,.36,1) both}
-.sp-mark{display:flex;align-items:center;justify-content:center;color:#FF591D}.sp-mark.white{position:absolute;inset:0;color:#fff;opacity:0;will-change:opacity;animation:spFade .7s ease-in-out 1.4s forwards}
-.sp-mark.orange{will-change:opacity;animation:spFadeOut .7s ease-in-out 1.4s forwards}
-.sp-logo svg{height:min(330px,42vh);width:auto;display:block}
-.sp-name{font:800 46px/1 'Manrope',sans-serif;letter-spacing:-2.6px}.sp-name small{display:block;font:700 10px 'DM Sans',sans-serif;letter-spacing:5px;margin-top:8px}
-.sp-sea{position:absolute;inset:0;z-index:2;transform:translate3d(0,108%,0);will-change:transform;animation:spRise 2.3s cubic-bezier(.45,.02,.2,1) .45s forwards}
-.sp-layer{position:absolute;left:0;right:0;top:0;height:calc(100% + 260px);will-change:transform;animation:spBob 2.6s ease-in-out infinite alternate}
-.sp-layer svg{display:block;width:200%;height:120px;will-change:transform;animation:spFlow 3.4s linear infinite;backface-visibility:hidden}
+.sp-logo{position:absolute;left:50%;top:45%;z-index:3;display:grid;justify-items:center;gap:14px;transform:translate3d(-50%,-50%,0);will-change:transform,opacity;animation:spLogo .9s cubic-bezier(.22,1,.36,1) both}
+.sp-mark{display:block;height:min(300px,40vh);width:auto;grid-area:1/1;user-select:none;-webkit-user-drag:none}
+.sp-mark.white{opacity:0;animation:spFade .45s ease-in-out 1.8s forwards}.sp-mark.orange{animation:spFadeOut .45s ease-in-out 1.8s forwards}
+@keyframes spFadeOut{to{opacity:0}}
+.sp-tag{grid-area:2/1;font:800 10px/1 'DM Sans',system-ui,sans-serif;letter-spacing:4px;color:#7a7f78;animation:spTag 1.6s ease both,spTagW .45s ease-in-out 1.8s forwards}
+@keyframes spTagW{to{color:#ffffffd9}}
+.sp-sea{position:absolute;inset:0;z-index:2;transform:translate3d(0,105%,0);will-change:transform;animation:spRise 1.9s cubic-bezier(.55,.05,.25,1) .35s forwards}
+.sp-layer{position:absolute;left:0;right:0;top:0;height:calc(100% + 240px);will-change:transform;animation:spBob 2.4s ease-in-out infinite alternate}
+.sp-layer svg{display:block;width:200%;max-width:none;height:110px;will-change:transform;animation:spFlow 3.2s linear infinite;backface-visibility:hidden}
 .sp-fill{height:100%;margin-top:-1px}
-.sp-layer.l3{top:-80px;animation-duration:3.1s}.sp-layer.l3 svg{animation-duration:6s;animation-direction:reverse}
-.sp-layer.l2{top:-36px;animation-duration:2.8s;animation-delay:-.6s}.sp-layer.l2 svg{animation-duration:4.4s}
-.sp-layer.l1{top:12px;animation-delay:-1.2s}.sp-layer.l1 svg{animation-duration:2.8s;height:160px}
-.sp-bubbles{position:absolute;left:0;right:0;top:20px;height:120px}
-.sp-bubbles i{position:absolute;top:40px;border-radius:50%;background:#fff;opacity:0;box-shadow:0 0 6px #ffffffaa;will-change:transform,opacity;animation:spBubble 1.6s cubic-bezier(.2,.7,.3,1) both}
-@keyframes spLogo{from{opacity:0;transform:translate3d(-50%,-40%,0) scale(.94)}to{opacity:1;transform:translate3d(-50%,-50%,0) scale(1)}}
-@keyframes spFade{to{opacity:1}}@keyframes spFadeOut{to{opacity:0}}
-@keyframes spRise{from{transform:translate3d(0,108%,0)}to{transform:translate3d(0,-14%,0)}}
-@keyframes spBob{from{transform:translate3d(0,-6px,0)}to{transform:translate3d(0,8px,0)}}
+.sp-layer.l3{top:-70px;animation-duration:2.9s}.sp-layer.l3 svg{animation-duration:5.6s;animation-direction:reverse}
+.sp-layer.l2{top:-34px;animation-duration:2.6s;animation-delay:-.5s}.sp-layer.l2 svg{animation-duration:4.2s}
+.sp-layer.l1{top:6px;animation-delay:-1s}.sp-layer.l1 svg{animation-duration:2.9s;height:130px}
+.sp-sound{position:absolute;z-index:5;right:max(16px,env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top));display:flex;align-items:center;gap:6px;border:1px solid #42432f26;background:#ffffffd9;color:#42432f;border-radius:999px;min-height:40px;padding:8px 14px;font:600 13px 'DM Sans',system-ui,sans-serif;cursor:pointer;opacity:0;animation:spFade .4s ease .5s forwards}
+#splash.dark .sp-sound{background:#191c19d9;color:#f3f3eb;border-color:#ffffff22}
+.sp-sound .w{display:none}.sp-sound.on .w{display:inline}.sp-sound.on .x{display:none}
+@keyframes spLogo{from{opacity:0;transform:translate3d(-50%,-44%,0) scale(.95)}to{opacity:1;transform:translate3d(-50%,-50%,0) scale(1)}}
+@keyframes spFade{to{opacity:1}}@keyframes spTag{0%,30%{opacity:0}100%{opacity:1}}
+@keyframes spRise{from{transform:translate3d(0,105%,0)}to{transform:translate3d(0,-12%,0)}}
+@keyframes spBob{from{transform:translate3d(0,-5px,0)}to{transform:translate3d(0,7px,0)}}
 @keyframes spFlow{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
-@keyframes spBubble{0%{opacity:0;transform:translate3d(0,0,0) scale(.4)}25%{opacity:.95}100%{opacity:0;transform:translate3d(var(--drift),-80px,0) scale(1.15)}}
-#splash.reduce .sp-sea{display:none}#splash.reduce .sp-logo,#splash.reduce .sp-mark{animation:none}
-
+#splash.reduce .sp-logo{animation:spFadeIn .5s ease both;transform:translate3d(-50%,-50%,0)}#splash.reduce .sp-mark.white,#splash.reduce .sp-sound{display:none}#splash.reduce .sp-mark.orange{animation:none}
+@keyframes spFadeIn{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){#splash{transition:opacity .3s}#splash.out{transform:none}}
 </style>
 </head>
 <body>

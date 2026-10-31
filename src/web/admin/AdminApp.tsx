@@ -3,7 +3,7 @@ import qrcode from 'qrcode-generator';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Icon, type IconName } from '../components/icons';
-import { PushGate } from '../components/install';
+import { Onboarding } from '../components/Onboarding';
 import { Logo } from '../components/Logo';
 import { Btn, Modal } from '../components/ui';
 import { api, ApiError, cachedGet, clearApiMemo, errorMessage } from '../lib/api';
@@ -17,6 +17,7 @@ import { BookingSheet, BookingsPage } from './Bookings';
 import { ContentPage } from './Content';
 import { Dashboard } from './Dashboard';
 import { FinancePage } from './Finance';
+import { HoursPage } from './Hours';
 import { QuiverPage } from './Quiver';
 import { SettingsPage } from './Settings';
 import { StudentsPage } from './Students';
@@ -130,6 +131,7 @@ function MfaSetup({ onDone }: { onDone: () => void }) {
 const NAV: [string, IconName, string][] = [
   ['/painel', 'chart', 'Painel'],
   ['/painel/agenda', 'calendar', 'Agenda'],
+  ['/painel/horarios', 'clock', 'Horários'],
   ['/painel/reservas', 'list', 'Reservas'],
   ['/painel/alunos', 'users', 'Alunos'],
   ['/painel/financeiro', 'money', 'Financeiro'],
@@ -162,6 +164,7 @@ function AdminShell({ me, onLogout }: { me: MeAdmin; onLogout: () => void }) {
 
   let page;
   if (path.startsWith('/painel/agenda')) page = <AgendaPage />;
+  else if (path.startsWith('/painel/horarios')) page = <HoursPage />;
   else if (path.startsWith('/painel/reservas') || bookingId) page = <BookingsPage />;
   else if (path.startsWith('/painel/alunos')) page = <StudentsPage />;
   else if (path.startsWith('/painel/financeiro')) page = <FinancePage />;
@@ -235,7 +238,7 @@ function AdminShell({ me, onLogout }: { me: MeAdmin; onLogout: () => void }) {
           )}
         </Modal>
       )}
-      <PushGate who="admin" />
+      <Onboarding who="admin" loggedIn />
     </div>
   );
 }
