@@ -1,43 +1,23 @@
 // App do aluno: navegação, tema, avisos (sino), cadastro e etapa obrigatória das notificações.
-import { type ComponentProps, type ComponentType, lazy, Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { ForecastPage } from '../components/forecast';
 import { Icon, type IconName } from '../components/icons';
 import { Onboarding } from '../components/Onboarding';
 import { Logo } from '../components/Logo';
 import { Btn, Empty, Modal, Skeleton, Spinner } from '../components/ui';
-import { api, cachedGet } from '../lib/api';
-import { ago, initials } from '../lib/format';
+import { api, cachedGet, preloadApi } from '../lib/api';
+import { ago, initials, today } from '../lib/format';
 import { navigate, signalAppReady, usePath, useSearch } from '../lib/router';
 import { useTheme } from '../lib/theme';
 import { isStandalone } from '../pwa/pwa';
 import type { Bootstrap } from '../lib/types';
 import { AuthModal } from './Auth';
+import { Book } from './Book';
 import { LessonModal, LessonsPage } from './Lessons';
 import { Boards, Home, InstallPage, Places, Privacy } from './Pages';
+import { Profile } from './Profile';
 import { StoreProvider, useStore } from './store';
-
-// Telas secundárias carregam sob demanda (o início abre mais rápido) e são pré-carregadas em segundo plano.
-// Depois de carregada, a tela aparece direto, sem passar pelo esqueleto: trocar de aba não "pisca"
-// nem muda a altura da página (era o que fazia a barra inferior dar um pulo).
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function preloadable<T extends ComponentType<any>>(load: () => Promise<{ default: T }>) {
-  let loaded: T | null = null;
-  const prefetch = () => load().then((m) => (loaded = m.default));
-  const Lazy = lazy(() => prefetch().then((C) => ({ default: C })));
-  const C = (props: ComponentProps<T>) => {
-    const L = (loaded ?? Lazy) as ComponentType<ComponentProps<T>>;
-    return <L {...props} />;
-  };
-  return Object.assign(C, { prefetch });
-}
-const Book = preloadable(() => import('./Book').then((m) => ({ default: m.Book })));
-const ForecastPage = preloadable(() => import('../components/forecast').then((m) => ({ default: m.ForecastPage })));
-const Profile = preloadable(() => import('./Profile').then((m) => ({ default: m.Profile })));
-function prefetchScreens() {
-  const run = () => void Promise.all([Book.prefetch(), ForecastPage.prefetch(), Profile.prefetch()]).catch(() => {});
-  if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 3000 });
-  else setTimeout(run, 1500);
-}
 
 function NoticesModal({ onClose }: { onClose: () => void }) {
   const { me, reloadMe } = useStore();
@@ -87,7 +67,6 @@ function Shell() {
     addEventListener('offline', on);
     return () => (removeEventListener('online', on), removeEventListener('offline', on));
   }, []);
-  useEffect(prefetchScreens, []);
   const c = boot.config;
   const nav: [string, IconName, string][] = [
     ['/', 'home', 'Início'],
@@ -158,7 +137,7 @@ function Shell() {
             )}
           </div>
         </header>
-        <Suspense fallback={<Skeleton rows={3} />}>{page}</Suspense>
+        {page}
         <footer className="footer">
           <span><Icon name="wave" /> {c.school.toUpperCase()} · {c.instructor.toUpperCase()}</span>
           <span>{c.texts.footer} · <a className="link" href="/privacidade" onClick={(e) => (e.preventDefault(), navigate('/privacidade'))}>Privacidade</a></span>
@@ -185,9 +164,15 @@ export function StudentApp() {
   useEffect(() => {
     cachedGet<Bootstrap>('/api/public/bootstrap').then(setBoot, () => setFailed(true));
   }, []);
-  // Primeira tela pronta (ou erro): a abertura pode liberar.
+  // Tudo de uma vez na abertura (a logo fica no centro enquanto isso): previsão, horários de cada praia
+  // e textos legais. As telas abrem na hora com esses dados e atualizam em segundo plano. Imagens não
+  // entram aqui: carregam só quando aparecem.
   useEffect(() => {
-    if (boot || failed) requestAnimationFrame(signalAppReady);
+    if (failed) return void requestAnimationFrame(signalAppReady);
+    if (!boot) return;
+    const d = today();
+    const paths = [...boot.places.flatMap((p) => [`/api/public/forecast/${p.id}`, `/api/public/availability?place=${p.id}&from=${d}&days=14`]), '/api/public/legal'];
+    void preloadApi(paths).then(() => requestAnimationFrame(signalAppReady));
   }, [boot, failed]);
   if (failed)
     return (

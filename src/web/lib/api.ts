@@ -75,6 +75,12 @@ export function prefetchApi(paths: string[]): void {
   for (const p of paths) cachedGet(p).catch(() => {});
 }
 
+/** Busca várias leituras em paralelo e resolve quando todas terminarem (com ou sem erro), no máximo em `maxMs`. */
+export function preloadApi(paths: string[], maxMs = 6000): Promise<void> {
+  const all = Promise.allSettled(paths.map((p) => cachedGet(p))).then(() => undefined);
+  return Promise.race([all, new Promise<void>((r) => setTimeout(r, maxMs))]);
+}
+
 export function clearApiMemo(): void {
   memo.clear();
 }

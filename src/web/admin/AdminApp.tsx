@@ -6,9 +6,9 @@ import { Icon, type IconName } from '../components/icons';
 import { Onboarding } from '../components/Onboarding';
 import { Logo } from '../components/Logo';
 import { Btn, Modal } from '../components/ui';
-import { api, ApiError, cachedGet, clearApiMemo, errorMessage } from '../lib/api';
+import { api, ApiError, cachedGet, clearApiMemo, errorMessage, preloadApi } from '../lib/api';
 import { useApi } from '../lib/hooks';
-import { ago, firstName } from '../lib/format';
+import { ago, firstName, today } from '../lib/format';
 import { navigate, signalAppReady, usePath, useTitle } from '../lib/router';
 import { useTheme } from '../lib/theme';
 import type { Bootstrap, Notice } from '../lib/types';
@@ -33,7 +33,7 @@ interface MeAdmin {
 
 type Gate = 'loading' | 'login' | 'mfa' | 'setup' | 'ok';
 
-function Login({ onDone, stage }: { onDone: () => void; stage: 'login' | 'mfa' }) {
+function Login({ onDone, stage }: { onDone: () => void | Promise<void>; stage: 'login' | 'mfa' }) {
   const [step, setStep] = useState(stage);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,7 +50,8 @@ function Login({ onDone, stage }: { onDone: () => void; stage: 'login' | 'mfa' }
         const r = await api<{ mfaRequired: boolean }>('/api/admin/auth/login', { body: { email, password } });
         if (r.mfaRequired) return setStep('mfa');
       } else await api('/api/admin/auth/mfa', { body: { code } });
-      onDone();
+      // Mantém "Acessando…" enquanto o painel carrega todas as telas.
+      await onDone();
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -251,8 +252,24 @@ export default function AdminApp() {
       const m = await api<MeAdmin>('/api/admin/auth/me');
       setMe(m);
       if (!m.totpEnabled && m.mfaRequired) return setGate('setup');
-      // Pré-carrega as telas principais.
-      void cachedGet('/api/admin/dashboard').catch(() => {});
+      // Tudo de uma vez: os dados de todas as telas do painel chegam enquanto a logo está no centro,
+      // e cada tela abre na hora (atualizando em segundo plano). Imagens ficam de fora.
+      const d = today();
+      const places = await cachedGet<Bootstrap>('/api/public/bootstrap').then((b) => b.places.map((p) => p.id), () => [] as string[]);
+      await preloadApi([
+        '/api/admin/dashboard',
+        '/api/admin/inbox',
+        ...(['pending', 'upcoming', 'past', 'cancelled', 'refunds'] as const).map((t) => `/api/admin/bookings?tab=${t}`),
+        `/api/admin/agenda?from=${d}&days=7`,
+        '/api/admin/students',
+        '/api/admin/boards',
+        '/api/admin/settings',
+        '/api/admin/places',
+        '/api/admin/schedule',
+        `/api/admin/finance?month=${d.slice(0, 7)}`,
+        '/api/admin/system',
+        ...places.map((p) => `/api/public/forecast/${p}`),
+      ]);
       setGate('ok');
     } catch (e) {
       setGate(e instanceof ApiError && e.code === 'MFA_REQUIRED' ? 'mfa' : 'login');
