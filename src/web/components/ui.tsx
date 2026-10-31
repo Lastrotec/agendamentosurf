@@ -60,8 +60,17 @@ export const useScrollLock = (active = true) => useEffect(() => (active ? lockSc
 // Altura visível real (desconta o teclado virtual): usada pelas janelas para não ficarem sob o teclado.
 if (typeof window !== 'undefined' && window.visualViewport) {
   const vv = window.visualViewport;
-  const set = () => document.documentElement.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+  // --vvtop: quanto a área visível está deslocada (o iPhone "arrasta" a página ao abrir o teclado).
+  // As janelas se centralizam nessa área: com o teclado aberto, ficam inteiras acima dele.
+  const set = () => {
+    const r = document.documentElement.style;
+    r.setProperty('--vvh', `${Math.round(vv.height)}px`);
+    r.setProperty('--vvtop', `${Math.round(vv.offsetTop)}px`);
+    // Teclado aberto: janela mais compacta (sem a logo) para os campos caberem.
+    document.documentElement.classList.toggle('kb-open', innerHeight - vv.height > 150);
+  };
   vv.addEventListener('resize', set);
+  vv.addEventListener('scroll', set);
   set();
 }
 
@@ -77,9 +86,15 @@ export function Modal({ title, onClose, children, className = '' }: { title: Rea
       // o teclado continua funcionando (Tab vai para o primeiro campo) e o leitor de tela anuncia o título.
       d.focus({ preventScroll: true });
     }
+    // Campo focado com o teclado aberto: rola dentro da janela até ele ficar no centro, visível.
+    const onFocus = (e: FocusEvent) => {
+      const t = e.target as HTMLElement;
+      if (t.matches('input, select, textarea')) setTimeout(() => t.scrollIntoView({ block: 'center', behavior: 'smooth' }), 320);
+    };
+    d.addEventListener('focusin', onFocus);
     const close = () => onClose();
     d.addEventListener('close', close);
-    return () => d.removeEventListener('close', close);
+    return () => (d.removeEventListener('close', close), d.removeEventListener('focusin', onFocus));
   }, [onClose]);
   return (
     <dialog

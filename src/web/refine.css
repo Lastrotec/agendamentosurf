@@ -44,6 +44,9 @@ img,video{max-width:100%}
 .mini-btns button{min-height:34px}
 
 /* ---------- Janelas ---------- */
+/* Janela centralizada na área visível (não na tela inteira): com o teclado do celular aberto ela fica
+   inteira acima dele, sem o título cortado em cima nem o campo cortado embaixo. */
+dialog[open]{position:fixed;inset:auto 0;margin:0 auto;top:calc(var(--vvtop,0px) + env(safe-area-inset-top) + (var(--vvh,100dvh) - env(safe-area-inset-top)) / 2);transform:translateY(-50%)}
 dialog{max-height:calc(var(--vvh,100dvh) - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 dialog[open]{animation:dlgIn .22s cubic-bezier(.2,.8,.2,1)}
 dialog::backdrop{animation:fadeIn .2s ease}
@@ -55,7 +58,7 @@ dialog::backdrop{background:transparent}
 html.scroll-locked{background:#9a9f98}
 body.dark dialog[open]{box-shadow:0 25px 120px #0008,0 0 0 200vmax #000000a0}
 html.dark.scroll-locked{background:#050605}
-@keyframes dlgIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes dlgIn{from{opacity:0;transform:translateY(calc(-50% + 10px)) scale(.985)}to{opacity:1;transform:translateY(-50%)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal-head{position:sticky;top:-27px;z-index:2;background:var(--surface);margin:-27px -27px 14px;padding:22px 27px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .modal-head h2{min-width:0}
@@ -172,3 +175,6 @@ body.dark .btn.danger{background:#3a1f1a;color:#ffb4a3}
 .logo-mono{display:block;background:currentColor;-webkit-mask:url(/brand/logo.svg) center/contain no-repeat;mask:url(/brand/logo.svg) center/contain no-repeat}
 .boot-skeleton{padding-top:calc(90px + env(safe-area-inset-top))}
 dialog:focus{outline:none}
+html.kb-open .auth-logo{display:none}
+html.kb-open dialog{padding-top:14px;padding-bottom:14px}
+html.kb-open .modal-head{top:-14px;margin-top:-14px;padding-top:12px}
