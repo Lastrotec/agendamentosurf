@@ -5,7 +5,12 @@
 html{background:var(--bg,#f7f8f5)}
 html.dark{background:#101210}
 html.scroll-locked,html.scroll-locked body{overflow:hidden;overscroll-behavior:none}
-body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* Sem o efeito elástico na rolagem (iPhone/app instalado): ele arrastava a página inteira — e a barra
+   inferior junto — para cima e de volta. overflow-x no <body> também fazia a barra fixa "pular" no iOS:
+   o corte horizontal fica no #app. */
+html,body{overscroll-behavior:none}
+body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+#app{overflow-x:clip}
 img,video{max-width:100%}
 
 /* ---------- Formulários ---------- */
@@ -54,11 +59,11 @@ dialog::backdrop{animation:fadeIn .2s ease}
 
 /* ---------- Barra de navegação inferior (celular) ---------- */
 @media(max-width:700px){
-  .sidebar{box-shadow:0 -6px 24px #1c2a1e0d}
+  .sidebar{box-shadow:0 -6px 24px #1c2a1e0d;transform:translateZ(0);will-change:transform;transition:none}
   /* Faixa da mesma cor abaixo da barra: em alguns iPhones (app instalado/iOS 26) a área segura de baixo
-     fica fora da janela e aparecia o fundo cinza, dando a impressão de barra "flutuando". */
+     fica fora da janela e aparecia o fundo cinza, dando a impressão de barra "flutuando".
+     A altura da barra é fixa (nada de JavaScript mudando a altura): ela não pula. */
   .sidebar::after{content:'';position:absolute;left:0;right:0;top:100%;height:160px;background:inherit;pointer-events:none}
-  html.ios-gap .sidebar{height:74px;padding-bottom:4px}
   .main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
   .admin-badge{display:none}
   .nav button{min-height:52px;font-size:10px!important;gap:4px;border-radius:12px;max-width:none}

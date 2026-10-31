@@ -56,17 +56,6 @@ function Root() {
 
 applyTheme();
 
-// iPhone (app instalado, iOS 26): a janela às vezes termina antes da borda de baixo da tela e a barra
-// inferior ficava "flutuando" acima de uma faixa vazia. Detectamos a diferença e a barra se ajusta.
-function detectBottomGap() {
-  const standalone = matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
-  const portrait = innerHeight > innerWidth;
-  const gap = screen.height - innerHeight;
-  document.documentElement.classList.toggle('ios-gap', standalone && portrait && /iPhone|iPod/.test(navigator.userAgent) && gap > 20 && gap < 90);
-}
-detectBottomGap();
-addEventListener('resize', detectBottomGap);
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Root />
