@@ -1,7 +1,8 @@
 'use strict';
 // Roda antes da primeira pintura (script síncrono no início do <body>):
 //  1. aplica o tema salvo neste aparelho — sem piscar o tema errado (mesma regra de src/web/lib/theme.ts);
-//  2. abertura animada: a onda sobe, cobre a logo da Outside (laranja → branca) e se abre para o app.
+//  2. abertura: a logo fica no centro enquanto o app carrega; pronto o app, a onda sobe, cobre a logo
+//     (laranja → branca) e se abre para ele.
 //     Logo oficial sem fundo (arquivos de /brand, sem alteração). Uma vez por sessão em cada área
 //     (app do aluno e painel). Toque para pular. Som opcional (botão "Som").
 (() => {
@@ -69,13 +70,13 @@
       const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
       const g = ctx.createGain();
       // Offset: se o som foi ligado no meio da animação, acompanha a onda de onde ela está.
-      const off = Math.min(1.6, Math.max(0, (performance.now() - started) / 1000));
+      const off = Math.min(1.0, Math.max(0, (performance.now() - started) / 1000));
       lp.frequency.setValueAtTime(380, t0);
-      lp.frequency.linearRampToValueAtTime(1500, t0 + Math.max(0.05, 1.5 - off));
-      lp.frequency.linearRampToValueAtTime(420, t0 + Math.max(0.1, 3 - off));
+      lp.frequency.linearRampToValueAtTime(1500, t0 + Math.max(0.05, 1.0 - off));
+      lp.frequency.linearRampToValueAtTime(420, t0 + Math.max(0.1, 2.2 - off));
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(0.32, t0 + Math.max(0.05, 1.4 - off));
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + Math.max(0.2, 3.1 - off));
+      g.gain.exponentialRampToValueAtTime(0.32, t0 + Math.max(0.05, 0.9 - off));
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + Math.max(0.2, 2.3 - off));
       src.connect(lp).connect(g).connect(ctx.destination);
       src.start(t0, 0, len);
     } catch { /* sem áudio */ }
@@ -90,18 +91,21 @@
     if (on) playWave(); else if (ctx) ctx.close().catch(() => {}), (ctx = null);
   });
 
-  // Começa depois do primeiro quadro pintado (e da logo pronta), para não "pular" o início.
+  // Enquanto o app carrega, a logo fica parada no centro. Quando ele avisa que está pronto
+  // (evento "outside:ready", disparado pelo React com a primeira tela montada), a onda sobe e leva a logo.
+  // Começar só depois disso evita a travada: a animação não disputa o processador com o carregamento.
   const go = () => {
-    if (el.classList.contains('go')) return;
-    started = performance.now();
-    el.classList.add('go');
-    if (wantSound && !reduce) playWave();
-    if (!reduce) setTimeout(() => { if (!el.classList.contains('out')) setBar('#1f8f8a'); }, 1500);
-    setTimeout(finish, reduce ? 900 : 2900);
+    if (el.classList.contains('go') || el.classList.contains('out')) return;
+    requestAnimationFrame(() => {
+      started = performance.now();
+      el.classList.add('go');
+      if (wantSound && !reduce) playWave();
+      if (!reduce) setTimeout(() => { if (!el.classList.contains('out')) setBar('#1f8f8a'); }, 900);
+      setTimeout(finish, reduce ? 250 : 1650);
+    });
   };
-  const img = el.querySelector('.sp-mark');
-  const ready = () => requestAnimationFrame(() => requestAnimationFrame(go));
-  if (img.complete) ready(); else { img.addEventListener('load', ready, { once: true }); img.addEventListener('error', ready, { once: true }); setTimeout(ready, 600); }
+  if (window.__outsideReady) go(); else addEventListener('outside:ready', go, { once: true });
+  setTimeout(go, 8000); // conexão muito lenta: não prende a pessoa na abertura
 
   function finish() {
     if (el.classList.contains('out')) return;
@@ -111,5 +115,5 @@
     setTimeout(() => { el.remove(); if (ctx) setTimeout(() => ctx && ctx.close().catch(() => {}), 1500); }, 700);
   }
   el.addEventListener('click', finish);
-  setTimeout(finish, 6000); // segurança: nunca prende a tela
+  setTimeout(finish, 12000); // segurança: nunca prende a tela
 })();

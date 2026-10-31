@@ -15,7 +15,7 @@ export function navigate(to: string, opts: { replace?: boolean; scroll?: boolean
   if (opts.replace) history.replaceState(null, '', to);
   else history.pushState(null, '', to);
   notify();
-  if (opts.scroll !== false) window.scrollTo({ top: 0 });
+  if (opts.scroll !== false) window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 export function usePath(): string {
@@ -62,4 +62,12 @@ export function useTitle(title: string) {
   useEffect(() => {
     document.title = title ? `${title} · Outside Surf School` : 'Outside Surf School · Aulas de surf em Salvador';
   }, [title]);
+}
+
+/** Avisa a abertura (public/splash.js) que a primeira tela está montada: a onda pode levar a logo. */
+export function signalAppReady() {
+  const w = window as Window & { __outsideReady?: boolean };
+  if (w.__outsideReady) return;
+  w.__outsideReady = true;
+  dispatchEvent(new Event('outside:ready'));
 }

@@ -1,5 +1,5 @@
 // App do aluno: navegação, tema, avisos (sino), cadastro e etapa obrigatória das notificações.
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { type ComponentProps, type ComponentType, lazy, Suspense, useEffect, useState } from 'react';
 
 import { Icon, type IconName } from '../components/icons';
 import { Onboarding } from '../components/Onboarding';
@@ -7,7 +7,7 @@ import { Logo } from '../components/Logo';
 import { Btn, Empty, Modal, Skeleton, Spinner } from '../components/ui';
 import { api, cachedGet } from '../lib/api';
 import { ago, initials } from '../lib/format';
-import { navigate, usePath, useSearch } from '../lib/router';
+import { navigate, signalAppReady, usePath, useSearch } from '../lib/router';
 import { useTheme } from '../lib/theme';
 import { isStandalone } from '../pwa/pwa';
 import type { Bootstrap } from '../lib/types';
@@ -17,16 +17,26 @@ import { Boards, Home, InstallPage, Places, Privacy } from './Pages';
 import { StoreProvider, useStore } from './store';
 
 // Telas secundárias carregam sob demanda (o início abre mais rápido) e são pré-carregadas em segundo plano.
-const loadBook = () => import('./Book');
-const loadForecast = () => import('../components/forecast');
-const loadProfile = () => import('./Profile');
-const Book = lazy(() => loadBook().then((m) => ({ default: m.Book })));
-const ForecastPage = lazy(() => loadForecast().then((m) => ({ default: m.ForecastPage })));
-const Profile = lazy(() => loadProfile().then((m) => ({ default: m.Profile })));
+// Depois de carregada, a tela aparece direto, sem passar pelo esqueleto: trocar de aba não "pisca"
+// nem muda a altura da página (era o que fazia a barra inferior dar um pulo).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function preloadable<T extends ComponentType<any>>(load: () => Promise<{ default: T }>) {
+  let loaded: T | null = null;
+  const prefetch = () => load().then((m) => (loaded = m.default));
+  const Lazy = lazy(() => prefetch().then((C) => ({ default: C })));
+  const C = (props: ComponentProps<T>) => {
+    const L = (loaded ?? Lazy) as ComponentType<ComponentProps<T>>;
+    return <L {...props} />;
+  };
+  return Object.assign(C, { prefetch });
+}
+const Book = preloadable(() => import('./Book').then((m) => ({ default: m.Book })));
+const ForecastPage = preloadable(() => import('../components/forecast').then((m) => ({ default: m.ForecastPage })));
+const Profile = preloadable(() => import('./Profile').then((m) => ({ default: m.Profile })));
 function prefetchScreens() {
-  const run = () => void Promise.all([loadBook(), loadForecast(), loadProfile()]).catch(() => {});
-  if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 4000 });
-  else setTimeout(run, 2500);
+  const run = () => void Promise.all([Book.prefetch(), ForecastPage.prefetch(), Profile.prefetch()]).catch(() => {});
+  if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 3000 });
+  else setTimeout(run, 1500);
 }
 
 function NoticesModal({ onClose }: { onClose: () => void }) {
@@ -175,6 +185,10 @@ export function StudentApp() {
   useEffect(() => {
     cachedGet<Bootstrap>('/api/public/bootstrap').then(setBoot, () => setFailed(true));
   }, []);
+  // Primeira tela pronta (ou erro): a abertura pode liberar.
+  useEffect(() => {
+    if (boot || failed) requestAnimationFrame(signalAppReady);
+  }, [boot, failed]);
   if (failed)
     return (
       <div className="boot-error">

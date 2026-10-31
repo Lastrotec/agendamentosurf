@@ -64,7 +64,8 @@ dialog::backdrop{animation:fadeIn .2s ease}
      fica fora da janela e aparecia o fundo cinza, dando a impressão de barra "flutuando".
      A altura da barra é fixa (nada de JavaScript mudando a altura): ela não pula. */
   .sidebar::after{content:'';position:absolute;left:0;right:0;top:100%;height:160px;background:inherit;pointer-events:none}
-  .main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+  /* Altura mínima da tela: páginas curtas não encolhem o documento ao trocar de aba. */
+  .main{padding-bottom:calc(96px + env(safe-area-inset-bottom));min-height:100lvh;box-sizing:border-box}
   .admin-badge{display:none}
   .nav button{min-height:52px;font-size:10px!important;gap:4px;border-radius:12px;max-width:none}
   .nav button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
