@@ -2,6 +2,7 @@
 import qrcode from 'qrcode-generator';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { Avatar } from '../components/Avatar';
 import { Icon, type IconName } from '../components/icons';
 import { Onboarding } from '../components/Onboarding';
 import { Logo } from '../components/Logo';
@@ -194,7 +195,7 @@ function AdminShell({ me, onLogout }: { me: MeAdmin; onLogout: () => void }) {
         <div className="sidebar-bottom">
           <button type="button" className="small-link" onClick={() => window.open('/', '_blank', 'noopener')}><Icon name="eye" />Ver app do aluno</button>
           <button type="button" className="small-link" onClick={onLogout}><Icon name="logout" />Sair</button>
-          <div className="user-mini"><div className="avatar">{me.name.slice(0, 1)}</div><div><strong>{me.name}</strong><small>Instrutor · administrador</small></div></div>
+          <div className="user-mini"><Avatar id="surfista" /><div><strong>{me.name}</strong><small>Instrutor · administrador</small></div></div>
         </div>
       </aside>
       <main className="main">

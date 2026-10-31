@@ -1,6 +1,7 @@
 import type { Sql } from 'postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { AVATARS } from '../../src/shared/avatars';
 import { createApp } from '../../src/worker/app';
 import { expireHolds } from '../../src/worker/services/bookings';
 import { ADMIN, Client, idem, makeEnv, newPhone, nextClassDay, resetDb, setupAdmin } from './helpers';
@@ -296,6 +297,19 @@ describe('painel', () => {
     expect(ag.json.bookings.some((b: { id: string }) => b.id === r.json.booking.id)).toBe(true);
     // Presença só depois do início
     expect((await a.post(`/api/admin/bookings/${r.json.booking.id}/attend`, { status: 'done' })).status).toBe(409);
+  });
+
+  it('ícone de perfil: padrão estável, troca só por um ícone da lista, painel vê o mesmo', async () => {
+    const { c } = await student('Ícone Teste');
+    const first = (await c.get('/api/me')).json.profile.avatar;
+    expect(AVATARS).toContain(first);
+    expect((await c.get('/api/me')).json.profile.avatar).toBe(first);
+    expect((await c.post('/api/me/avatar', { avatar: 'foto.jpg' })).status).toBe(400);
+    expect((await c.post('/api/me/avatar', { avatar: 'tartaruga' })).status).toBe(200);
+    expect((await c.get('/api/me')).json.profile.avatar).toBe('tartaruga');
+    const a = await admin();
+    const list = await a.get('/api/admin/students?q=Ícone Teste');
+    expect(list.json.students[0].avatar).toBe('tartaruga');
   });
 
   it('LGPD: aluno apaga a própria conta', async () => {

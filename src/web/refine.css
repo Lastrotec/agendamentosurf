@@ -210,3 +210,17 @@ html.kb-open .modal-head{top:-14px;margin-top:-14px;padding-top:12px}
 .dark .fc-wind.terral{background:#173a26;color:#a6e6bf}.dark .fc-wind.fraco{background:#172c42;color:#a9d0f5}.dark .fc-wind.cruzado{background:#3f2a12;color:#f5c993}.dark .fc-wind.maral{background:#43201a;color:#f5b3a5}
 .fc-layout>*{min-width:0}
 @media(max-width:700px){.fc-scroll table{min-width:700px;font-size:11px}.fc-scroll th,.fc-scroll td{padding:7px 6px}.fc-scroll .hr{padding-left:12px;box-shadow:1px 0 0 var(--line)}}
+
+/* Ícones de perfil (silhuetas do mar) */
+.avatar.sil{padding:0;overflow:hidden;font-size:0}
+.avatar.sil svg{width:74%;height:74%;display:block}
+.avatar.sil.orange{--avatar-bg:#ffe3d6;background:#ffe3d6;color:#d2470f}.avatar.sil.teal{--avatar-bg:#d6efed;background:#d6efed;color:#16706c}.avatar.sil.green{--avatar-bg:#e0ecd9;background:#e0ecd9;color:#3f6a44}
+.avatar.sil.sand{--avatar-bg:#f6ead2;background:#f6ead2;color:#b07a1c}.avatar.sil.sky{--avatar-bg:#dceaf7;background:#dceaf7;color:#2f6aa3}.avatar.sil.purple{--avatar-bg:#ebe2f4;background:#ebe2f4;color:#6d4596}
+.dark .avatar.sil.orange{--avatar-bg:#4a2516;background:#4a2516;color:#ff9a6e}.dark .avatar.sil.teal{--avatar-bg:#163a38;background:#163a38;color:#7fd3cc}.dark .avatar.sil.green{--avatar-bg:#22331f;background:#22331f;color:#a6cf9d}
+.dark .avatar.sil.sand{--avatar-bg:#3d3019;background:#3d3019;color:#f0c672}.dark .avatar.sil.sky{--avatar-bg:#182c40;background:#182c40;color:#93c2ee}.dark .avatar.sil.purple{--avatar-bg:#2f2340;background:#2f2340;color:#c9a8ee}
+.avatar-pick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.avatar-pick button{display:grid;justify-items:center;gap:6px;padding:10px 4px;border-radius:12px;background:var(--soft);border:2px solid transparent;font-size:10px;color:var(--muted)}
+.avatar-pick button[aria-pressed=true]{border-color:var(--orange);color:var(--ink);background:var(--surface)}
+.avatar-edit{position:relative;padding:0;background:none;border-radius:50%}
+.avatar-edit .badge-edit{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.avatar-edit .badge-edit .ico{width:13px;height:13px}

@@ -63,7 +63,7 @@ export interface Notice {
 }
 
 export interface Me {
-  profile: { name: string; phone: string | null; level: string; board: Board | null; since: string };
+  profile: { name: string; phone: string | null; level: string; avatar: string; board: Board | null; since: string };
   bookings: BookingView[];
   orders: OrderView[];
   tips: { id: string; text: string; at: string }[];

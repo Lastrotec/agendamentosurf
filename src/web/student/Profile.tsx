@@ -2,11 +2,12 @@
 import { useState } from 'react';
 
 import { formatPhoneBR } from '../../shared/phone';
+import { Avatar, AVATAR_OPTIONS } from '../components/Avatar';
 import { Icon } from '../components/icons';
 import { PushCard } from '../components/install';
 import { Btn, Detail, Modal, PageTitle, useToast } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
-import { fmt, initials, money } from '../lib/format';
+import { fmt, money } from '../lib/format';
 import { Link, navigate, useTitle } from '../lib/router';
 import { BoardCard } from './Pages';
 import { CheckoutModal } from './Checkout';
@@ -18,6 +19,7 @@ export function Profile() {
   const toast = useToast();
   const [edit, setEdit] = useState(false);
   const [pwd, setPwd] = useState(false);
+  const [pick, setPick] = useState<string | null>(null);
   const [del, setDel] = useState(false);
   const [payOrder, setPayOrder] = useState<string | null>(null);
   const [name, setName] = useState(me?.profile.name ?? '');
@@ -50,7 +52,10 @@ export function Profile() {
         <div>
           <section className="card">
             <div className="profile-head">
-              <div className="avatar big">{initials(me.profile.name)}</div>
+              <button type="button" className="avatar-edit" aria-label="Trocar o ícone do perfil" onClick={() => (setError(null), setPick(me.profile.avatar))}>
+                <Avatar id={me.profile.avatar} size={68} className="big" />
+                <span className="badge-edit" aria-hidden="true"><Icon name="edit" /></span>
+              </button>
               <div><h2>{me.profile.name}</h2><p>{formatPhoneBR(me.profile.phone)}</p><span className="badge orange">{me.profile.level}</span></div>
             </div>
             <Detail label="Aulas realizadas">{done}</Detail>
@@ -105,6 +110,20 @@ export function Profile() {
           <div className="field"><label htmlFor="p-name">Nome completo</label><input id="p-name" maxLength={60} value={name} onChange={(e) => setName(e.target.value)} /></div>
           {error && <p className="error-text">{error}</p>}
           <div className="modal-actions"><Btn busy={busy} icon="check" onClick={async () => (await run(() => api('/api/me/profile', { body: { name } }).then(reloadMe), 'Nome atualizado.')) && setEdit(false)}>Salvar</Btn></div>
+        </Modal>
+      )}
+      {pick && (
+        <Modal title="Seu ícone" onClose={() => setPick(null)}>
+          <div className="avatar-pick" role="group" aria-label="Escolha um ícone">
+            {AVATAR_OPTIONS.map((o) => (
+              <button key={o.id} type="button" aria-pressed={pick === o.id} onClick={() => setPick(o.id)}>
+                <Avatar id={o.id} size={52} />
+                {o.label}
+              </button>
+            ))}
+          </div>
+          {error && <p className="error-text">{error}</p>}
+          <div className="modal-actions"><Btn busy={busy} icon="check" disabled={pick === me.profile.avatar} onClick={async () => (await run(() => api('/api/me/avatar', { body: { avatar: pick } }).then(reloadMe), 'Ícone atualizado.')) && setPick(null)}>Salvar</Btn></div>
         </Modal>
       )}
       {pwd && (

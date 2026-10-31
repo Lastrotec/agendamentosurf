@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
 
+import { AVATARS, avatarOf } from '../../shared/avatars';
 import { PLANS } from '../../shared/domain';
 import { formatBRL } from '../../shared/money';
 import { bookSchema, cleanText, loginSchema, password, phoneInput, pushSubscriptionSchema, rescheduleSchema, signupSchema } from '../../shared/schemas';
@@ -77,8 +78,8 @@ studentRoutes.get('/', async (c) => {
   const sql = c.get('db')();
   const s = await c.get('settings')();
   const id = c.get('studentId');
-  const [me] = await sql<{ name: string; phone: string | null; level: string; board_id: string | null; created_at: Date }[]>`
-    select name, phone, level, board_id, created_at from students where id = ${id}`;
+  const [me] = await sql<{ name: string; phone: string | null; level: string; board_id: string | null; avatar: string | null; created_at: Date }[]>`
+    select name, phone, level, board_id, avatar, created_at from students where id = ${id}`;
   const bookings = await selectBookings(sql, `student_id = $1 and status <> 'expired' order by starts_at desc limit 200`, [id]);
   const orders = await selectOrders(sql, `student_id = $1 and status <> 'expired' order by created_at desc limit 100`, [id]);
   const used = await sql<{ order_id: string; n: number }[]>`
@@ -93,7 +94,7 @@ studentRoutes.get('/', async (c) => {
     board = b ? toBoard(b) : null;
   }
   return c.json({
-    profile: { name: me.name, phone: me.phone, level: me.level, board, since: new Date(me.created_at).toISOString() },
+    profile: { name: me.name, phone: me.phone, level: me.level, avatar: avatarOf({ id, avatar: me.avatar }), board, since: new Date(me.created_at).toISOString() },
     bookings: bookings.map((b) => bookingView(b, s)),
     orders: orders.map((o) => orderView(o, usedBy[o.id] ?? 0)),
     tips: tips.map((t) => ({ id: t.id, text: t.text, at: new Date(t.created_at).toISOString() })),
@@ -104,6 +105,12 @@ studentRoutes.get('/', async (c) => {
 studentRoutes.post('/profile', async (c) => {
   const { name } = await parseJson(c, z.object({ name: cleanText(60, 2) }));
   await c.get('db')()`update students set name = ${name} where id = ${c.get('studentId')}`;
+  return c.json({ ok: true });
+});
+
+studentRoutes.post('/avatar', async (c) => {
+  const { avatar } = await parseJson(c, z.object({ avatar: z.enum(AVATARS) }));
+  await c.get('db')()`update students set avatar = ${avatar} where id = ${c.get('studentId')}`;
   return c.json({ ok: true });
 });
 

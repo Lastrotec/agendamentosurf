@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
 
+import { avatarOf } from '../../shared/avatars';
 import { IMAGE_SLOTS, LIVE_STATUSES, PLANS } from '../../shared/domain';
 import { DEFAULT_PRIVACY, DEFAULT_TERMS } from '../../shared/legal';
 import { formatBRL } from '../../shared/money';
@@ -424,23 +425,23 @@ adminRoutes.get('/students', async (c) => {
   const sql = c.get('db')();
   const term = (q.q ?? '').trim();
   const digits = term.replace(/\D/g, '');
-  const rows = await sql<{ id: string; name: string; phone: string | null; level: string; created_at: Date; lessons: number; next: Date | null; has_password: boolean }[]>`
-    select s.id, s.name, s.phone, s.level, s.created_at, (s.password_hash is not null) as has_password,
+  const rows = await sql<{ id: string; name: string; phone: string | null; level: string; avatar: string | null; created_at: Date; lessons: number; next: Date | null; has_password: boolean }[]>`
+    select s.id, s.name, s.phone, s.level, s.avatar, s.created_at, (s.password_hash is not null) as has_password,
       (select count(*)::int from bookings b where b.student_id = s.id and b.status = 'done') as lessons,
       (select min(starts_at) from bookings b where b.student_id = s.id and b.status = 'confirmed' and b.starts_at > now()) as next
     from students s
     where s.anonymized_at is null
       and (${term} = '' or lower(s.name) like ${'%' + term.toLowerCase() + '%'} or (${digits} <> '' and s.phone like ${'%' + digits + '%'}))
     order by lower(s.name) limit 300`;
-  return c.json({ students: rows.map((r) => ({ id: r.id, name: r.name, phone: r.phone, level: r.level, lessons: r.lessons, hasPassword: r.has_password, next: r.next ? new Date(r.next).toISOString() : null, since: new Date(r.created_at).toISOString() })) });
+  return c.json({ students: rows.map((r) => ({ id: r.id, name: r.name, phone: r.phone, level: r.level, avatar: avatarOf(r), lessons: r.lessons, hasPassword: r.has_password, next: r.next ? new Date(r.next).toISOString() : null, since: new Date(r.created_at).toISOString() })) });
 });
 
 adminRoutes.get('/students/:id', async (c) => {
   const sql = c.get('db')();
   const s = await c.get('settings')();
   const id = paramId(c);
-  const [st] = await sql<{ id: string; name: string; phone: string | null; level: string; board_id: string | null; admin_notes: string; created_at: Date; has_password: boolean; anonymized_at: Date | null }[]>`
-    select id, name, phone, level, board_id, admin_notes, created_at, (password_hash is not null) as has_password, anonymized_at from students where id = ${id}`;
+  const [st] = await sql<{ id: string; name: string; phone: string | null; level: string; board_id: string | null; admin_notes: string; avatar: string | null; created_at: Date; has_password: boolean; anonymized_at: Date | null }[]>`
+    select id, name, phone, level, board_id, admin_notes, avatar, created_at, (password_hash is not null) as has_password, anonymized_at from students where id = ${id}`;
   if (!st || st.anonymized_at) throw notFound('Aluno não encontrado.');
   const bookings = await selectBookings(sql, `student_id = $1 order by starts_at desc limit 100`, [id]);
   const orders = await selectOrders(sql, `student_id = $1 and status <> 'expired' order by created_at desc`, [id]);
@@ -448,7 +449,7 @@ adminRoutes.get('/students/:id', async (c) => {
   const usedBy = Object.fromEntries(used.map((u) => [u.order_id, u.n]));
   const tips = await sql<{ id: string; text: string; created_at: Date }[]>`select id, text, created_at from tips where student_id = ${id} order by created_at desc`;
   return c.json({
-    student: { id: st.id, name: st.name, phone: st.phone, level: st.level, boardId: st.board_id, adminNotes: st.admin_notes, hasPassword: st.has_password, since: new Date(st.created_at).toISOString() },
+    student: { id: st.id, name: st.name, phone: st.phone, level: st.level, avatar: avatarOf(st), boardId: st.board_id, adminNotes: st.admin_notes, hasPassword: st.has_password, since: new Date(st.created_at).toISOString() },
     bookings: bookings.map((b) => ({ ...bookingView(b, s), boardId: b.board_id })),
     orders: orders.map((o) => orderView(o, usedBy[o.id] ?? 0)),
     tips: tips.map((t) => ({ id: t.id, text: t.text, at: new Date(t.created_at).toISOString() })),
