@@ -47,6 +47,14 @@ img,video{max-width:100%}
 dialog{max-height:calc(var(--vvh,100dvh) - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 dialog[open]{animation:dlgIn .22s cubic-bezier(.2,.8,.2,1)}
 dialog::backdrop{animation:fadeIn .2s ease}
+/* Escurecido atrás das janelas até a borda real da tela. No iPhone (app instalado, iOS 26) a janela da
+   página termina antes da borda de baixo e o ::backdrop só cobre a janela: sobrava uma faixa clara e o
+   fundo parecia "subir". A sombra da própria janela pinta além desse limite; o ::backdrop fica só com o desfoque. */
+dialog[open]{box-shadow:0 25px 120px #0004,0 0 0 200vmax #14211870}
+dialog::backdrop{background:transparent}
+html.scroll-locked{background:#9a9f98}
+body.dark dialog[open]{box-shadow:0 25px 120px #0008,0 0 0 200vmax #000000a0}
+html.dark.scroll-locked{background:#050605}
 @keyframes dlgIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal-head{position:sticky;top:-27px;z-index:2;background:var(--surface);margin:-27px -27px 14px;padding:22px 27px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -163,3 +171,4 @@ body.dark .btn.danger{background:#3a1f1a;color:#ffb4a3}
 .text-btn{min-height:40px;font-size:13px}
 .logo-mono{display:block;background:currentColor;-webkit-mask:url(/brand/logo.svg) center/contain no-repeat;mask:url(/brand/logo.svg) center/contain no-repeat}
 .boot-skeleton{padding-top:calc(90px + env(safe-area-inset-top))}
+dialog:focus{outline:none}
