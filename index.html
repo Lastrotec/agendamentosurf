@@ -52,10 +52,9 @@ html.splashing,html.splashing body{overflow:hidden}
 #splash *{animation-play-state:paused}#splash.go *,#splash .sp-logo,#splash .sp-sound{animation-play-state:running}
 .sp-logo{position:absolute;left:50%;top:45%;z-index:3;display:grid;justify-items:center;gap:14px;transform:translate3d(-50%,-50%,0);will-change:transform,opacity;animation:spLogo .35s ease-out both}
 .sp-mark{display:block;height:min(300px,40vh);width:auto;grid-area:1/1;user-select:none;-webkit-user-drag:none}
-.sp-mark.white{opacity:0;animation:spFade .18s ease-in-out .8s forwards;animation-play-state:paused}.sp-mark.orange{animation:spFadeOut .18s ease-in-out .8s forwards;animation-play-state:paused}#splash.go .sp-mark{animation-play-state:running}
+.sp-mark.white{clip-path:inset(100% 0 0 0);will-change:clip-path}
 @keyframes spFadeOut{to{opacity:0}}
-.sp-tag{grid-area:2/1;font:800 10px/1 'DM Sans',system-ui,sans-serif;letter-spacing:4px;color:#7a7f78;animation:spTagW .3s ease-in-out .75s forwards}
-@keyframes spTagW{to{color:#ffffffd9}}
+.sp-tag{grid-area:2/1;font:800 10px/1 'DM Sans',system-ui,sans-serif;letter-spacing:4px;color:#7a7f78;transition:color .2s}.sp-tag.wet{color:#ffffffd9}
 .sp-sea{position:absolute;inset:0;z-index:2;transform:translate3d(0,calc(100% + 90px),0);will-change:transform;animation:spRise 1.15s cubic-bezier(.5,.05,.3,1) forwards}
 .sp-layer{position:absolute;left:0;right:0;top:0;height:calc(100% + 240px);will-change:transform;animation:spBob 2.4s ease-in-out infinite alternate}
 .sp-layer svg{display:block;width:200%;max-width:none;height:110px;will-change:transform;animation:spFlow 3.2s linear infinite;backface-visibility:hidden}
@@ -71,7 +70,7 @@ html.splashing,html.splashing body{overflow:hidden}
 @keyframes spRise{from{transform:translate3d(0,calc(100% + 90px),0)}to{transform:translate3d(0,-12%,0)}}
 @keyframes spBob{from{transform:translate3d(0,-5px,0)}to{transform:translate3d(0,7px,0)}}
 @keyframes spFlow{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
-#splash.reduce .sp-logo{animation:spFadeIn .5s ease both;transform:translate3d(-50%,-50%,0)}#splash.reduce .sp-mark.white,#splash.reduce .sp-sound{display:none}#splash.reduce .sp-mark.orange{animation:none}
+#splash.reduce .sp-logo{animation:spFadeIn .5s ease both;transform:translate3d(-50%,-50%,0)}#splash.reduce .sp-mark.white,#splash.reduce .sp-sound{display:none}
 @keyframes spFadeIn{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){#splash{transition:opacity .3s}#splash.out{transform:none}}
 </style>

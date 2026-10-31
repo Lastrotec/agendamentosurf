@@ -100,10 +100,26 @@
       started = performance.now();
       el.classList.add('go');
       if (wantSound && !reduce) playWave();
+      if (!reduce) requestAnimationFrame(paint);
       if (!reduce) setTimeout(() => { if (!el.classList.contains('out')) setBar('#1f8f8a'); }, 900);
       setTimeout(finish, reduce ? 250 : 1650);
     });
   };
+  // A logo fica branca exatamente onde a água já passou (a cada quadro, pela linha d'água da onda da frente):
+  // o mar "pinta" a logo de baixo para cima, sem atraso depois que a onda passa.
+  const front = el.querySelector('.sp-layer.l1');
+  const white = el.querySelector('.sp-mark.white');
+  const tag = el.querySelector('.sp-tag');
+  function paint() {
+    if (!front || !white || el.classList.contains('out')) return;
+    const water = front.getBoundingClientRect().top + 52; // linha da espuma dentro da onda
+    const box = white.getBoundingClientRect();
+    const cut = Math.max(0, Math.min(box.height, water - box.top));
+    white.style.clipPath = `inset(${cut.toFixed(1)}px 0 0 0)`;
+    if (tag) tag.classList.toggle('wet', water < tag.getBoundingClientRect().bottom);
+    if (cut > 0) requestAnimationFrame(paint);
+  }
+
   if (window.__outsideReady) go(); else addEventListener('outside:ready', go, { once: true });
   setTimeout(go, 8000); // conexão muito lenta: não prende a pessoa na abertura
 
