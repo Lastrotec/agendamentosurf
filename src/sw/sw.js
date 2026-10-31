@@ -4,7 +4,7 @@
    - __VERSION__ é substituído no build; uma nova versão aparece como "Atualizar" no app. */
 const VERSION = '__VERSION__';
 const STATIC_CACHE = `os-static-${VERSION}`;
-const PRECACHE = ['/offline.html', '/brand/logo.svg', '/icons/icon-192.png', '/splash.js'];
+const PRECACHE = ['/offline.html', '/brand/logo.svg', '/brand/logo-branca.svg', '/icons/icon-192.png', '/splash.js'];
 
 self.addEventListener('install', (event) => {
   // Cada arquivo é opcional (ex.: logo.png ainda não enviado) — uma falha não impede a instalação.

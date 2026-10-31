@@ -41,6 +41,7 @@
 <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: light)" href="/icons/startup/light-750x1334.png">
 <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) and (prefers-color-scheme: dark)" href="/icons/startup/dark-750x1334.png">
 <link rel="preload" href="/brand/logo.svg" as="image" type="image/svg+xml">
+<link rel="preload" href="/brand/logo-branca.svg" as="image" type="image/svg+xml">
 <link rel="preload" href="/fonts/font-8.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 html,body{margin:0;background:#f7f8f5}html.dark,html.dark body{background:#101210}
@@ -51,7 +52,8 @@ html.splashing,html.splashing body{overflow:hidden}
 #splash *{animation-play-state:paused}#splash.go *{animation-play-state:running}
 .sp-logo{position:absolute;left:50%;top:45%;z-index:3;display:grid;justify-items:center;gap:14px;transform:translate3d(-50%,-50%,0);will-change:transform,opacity;animation:spLogo .9s cubic-bezier(.22,1,.36,1) both}
 .sp-mark{display:block;height:min(300px,40vh);width:auto;grid-area:1/1;user-select:none;-webkit-user-drag:none}
-.sp-mark.white{filter:brightness(0) invert(1);opacity:0;animation:spFade .45s ease-in-out 1.8s forwards}
+.sp-mark.white{opacity:0;animation:spFade .45s ease-in-out 1.8s forwards}.sp-mark.orange{animation:spFadeOut .45s ease-in-out 1.8s forwards}
+@keyframes spFadeOut{to{opacity:0}}
 .sp-tag{grid-area:2/1;font:800 10px/1 'DM Sans',system-ui,sans-serif;letter-spacing:4px;color:#7a7f78;animation:spTag 1.6s ease both,spTagW .45s ease-in-out 1.8s forwards}
 @keyframes spTagW{to{color:#ffffffd9}}
 .sp-sea{position:absolute;inset:0;z-index:2;transform:translate3d(0,105%,0);will-change:transform;animation:spRise 1.9s cubic-bezier(.55,.05,.25,1) .35s forwards}
@@ -69,7 +71,7 @@ html.splashing,html.splashing body{overflow:hidden}
 @keyframes spRise{from{transform:translate3d(0,105%,0)}to{transform:translate3d(0,-12%,0)}}
 @keyframes spBob{from{transform:translate3d(0,-5px,0)}to{transform:translate3d(0,7px,0)}}
 @keyframes spFlow{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
-#splash.reduce .sp-logo{animation:spFadeIn .5s ease both;transform:translate3d(-50%,-50%,0)}#splash.reduce .sp-mark.white,#splash.reduce .sp-sound{display:none}
+#splash.reduce .sp-logo{animation:spFadeIn .5s ease both;transform:translate3d(-50%,-50%,0)}#splash.reduce .sp-mark.white,#splash.reduce .sp-sound{display:none}#splash.reduce .sp-mark.orange{animation:none}
 @keyframes spFadeIn{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){#splash{transition:opacity .3s}#splash.out{transform:none}}
 </style>

@@ -2,7 +2,8 @@
 // Roda antes da primeira pintura (script síncrono no início do <body>):
 //  1. aplica o tema salvo neste aparelho — sem piscar o tema errado (mesma regra de src/web/lib/theme.ts);
 //  2. abertura animada: a onda sobe, cobre a logo da Outside (laranja → branca) e se abre para o app.
-//     Uma vez por sessão, no app do aluno e no painel. Toque para pular. Som opcional (botão "Som").
+//     Logo oficial sem fundo (arquivos de /brand, sem alteração). Uma vez por sessão em cada área
+//     (app do aluno e painel). Toque para pular. Som opcional (botão "Som").
 (() => {
   const html = document.documentElement;
   const admin = location.pathname === '/painel' || location.pathname.startsWith('/painel/');
@@ -21,7 +22,7 @@
 
   // --- 2. Abertura ---
   let seen = null;
-  try { seen = sessionStorage.getItem('outside-splash'); sessionStorage.setItem('outside-splash', '1'); } catch { /* sem storage: mostra */ }
+  try { const k = admin ? 'outside-splash-painel' : 'outside-splash'; seen = sessionStorage.getItem(k); sessionStorage.setItem(k, '1'); } catch { /* sem storage: mostra */ }
   if (seen) return;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -42,7 +43,7 @@
   el.setAttribute('aria-hidden', 'true');
   el.className = (reduce ? 'reduce ' : '') + (dark ? 'dark' : '');
   el.innerHTML =
-    `<div class="sp-logo"><img class="sp-mark" src="/brand/logo.svg" alt="" decoding="sync"><img class="sp-mark white" src="/brand/logo.svg" alt="" decoding="sync">` +
+    `<div class="sp-logo"><img class="sp-mark orange" src="/brand/logo.svg" alt="" decoding="sync"><img class="sp-mark white" src="/brand/logo-branca.svg" alt="" decoding="sync">` +
     (admin ? '<small class="sp-tag">PAINEL DO INSTRUTOR</small>' : '') + `</div>` +
     (reduce ? '' : `<div class="sp-sea">${layer('l3', '#0b3f45', 70, 14, 2, false)}${layer('l2', '#12605c', 80, 11, 3, false)}${layer('l1', '#1f8f8a', 90, 9, 2, true)}</div>`) +
     `<button type="button" class="sp-sound" aria-pressed="false" aria-label="Som da abertura"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="x" d="m16 9 6 6m0-6-6 6"/></svg><span>Som</span></button>`;
