@@ -49,26 +49,26 @@ html.splashing,html.splashing body{overflow:hidden}
 #splash{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 80% at 50% 32%,#f9f4ec,#f3ece0);overflow:hidden;cursor:pointer;contain:strict;transition:opacity .6s cubic-bezier(.4,0,.2,1),transform .7s cubic-bezier(.4,0,.2,1)}
 #splash.dark{background:radial-gradient(120% 80% at 50% 32%,#161916,#0f110f)}
 #splash.out{opacity:0;transform:translate3d(0,-3%,0);pointer-events:none}
-#splash *{animation-play-state:paused}#splash.go *{animation-play-state:running}
-.sp-logo{position:absolute;left:50%;top:45%;z-index:3;display:grid;justify-items:center;gap:14px;transform:translate3d(-50%,-50%,0);will-change:transform,opacity;animation:spLogo .9s cubic-bezier(.22,1,.36,1) both}
+#splash *{animation-play-state:paused}#splash.go *,#splash .sp-logo,#splash .sp-sound{animation-play-state:running}
+.sp-logo{position:absolute;left:50%;top:45%;z-index:3;display:grid;justify-items:center;gap:14px;transform:translate3d(-50%,-50%,0);will-change:transform,opacity;animation:spLogo .35s ease-out both}
 .sp-mark{display:block;height:min(300px,40vh);width:auto;grid-area:1/1;user-select:none;-webkit-user-drag:none}
-.sp-mark.white{opacity:0;animation:spFade .45s ease-in-out 1.8s forwards}.sp-mark.orange{animation:spFadeOut .45s ease-in-out 1.8s forwards}
+.sp-mark.white{opacity:0;animation:spFade .18s ease-in-out .8s forwards;animation-play-state:paused}.sp-mark.orange{animation:spFadeOut .18s ease-in-out .8s forwards;animation-play-state:paused}#splash.go .sp-mark{animation-play-state:running}
 @keyframes spFadeOut{to{opacity:0}}
-.sp-tag{grid-area:2/1;font:800 10px/1 'DM Sans',system-ui,sans-serif;letter-spacing:4px;color:#7a7f78;animation:spTag 1.6s ease both,spTagW .45s ease-in-out 1.8s forwards}
+.sp-tag{grid-area:2/1;font:800 10px/1 'DM Sans',system-ui,sans-serif;letter-spacing:4px;color:#7a7f78;animation:spTagW .3s ease-in-out .75s forwards}
 @keyframes spTagW{to{color:#ffffffd9}}
-.sp-sea{position:absolute;inset:0;z-index:2;transform:translate3d(0,105%,0);will-change:transform;animation:spRise 1.9s cubic-bezier(.55,.05,.25,1) .35s forwards}
+.sp-sea{position:absolute;inset:0;z-index:2;transform:translate3d(0,calc(100% + 90px),0);will-change:transform;animation:spRise 1.15s cubic-bezier(.5,.05,.3,1) forwards}
 .sp-layer{position:absolute;left:0;right:0;top:0;height:calc(100% + 240px);will-change:transform;animation:spBob 2.4s ease-in-out infinite alternate}
 .sp-layer svg{display:block;width:200%;max-width:none;height:110px;will-change:transform;animation:spFlow 3.2s linear infinite;backface-visibility:hidden}
 .sp-fill{height:100%;margin-top:-1px}
 .sp-layer.l3{top:-70px;animation-duration:2.9s}.sp-layer.l3 svg{animation-duration:5.6s;animation-direction:reverse}
 .sp-layer.l2{top:-34px;animation-duration:2.6s;animation-delay:-.5s}.sp-layer.l2 svg{animation-duration:4.2s}
 .sp-layer.l1{top:6px;animation-delay:-1s}.sp-layer.l1 svg{animation-duration:2.9s;height:130px}
-.sp-sound{position:absolute;z-index:5;right:max(16px,env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top));display:flex;align-items:center;gap:6px;border:1px solid #42432f26;background:#ffffffd9;color:#42432f;border-radius:999px;min-height:40px;padding:8px 14px;font:600 13px 'DM Sans',system-ui,sans-serif;cursor:pointer;opacity:0;animation:spFade .4s ease .5s forwards}
+.sp-sound{position:absolute;z-index:5;right:max(16px,env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top));display:flex;align-items:center;gap:6px;border:1px solid #42432f26;background:#ffffffd9;color:#42432f;border-radius:999px;min-height:40px;padding:8px 14px;font:600 13px 'DM Sans',system-ui,sans-serif;cursor:pointer;opacity:0;animation:spFade .3s ease .2s forwards}
 #splash.dark .sp-sound{background:#191c19d9;color:#f3f3eb;border-color:#ffffff22}
 .sp-sound .w{display:none}.sp-sound.on .w{display:inline}.sp-sound.on .x{display:none}
-@keyframes spLogo{from{opacity:0;transform:translate3d(-50%,-44%,0) scale(.95)}to{opacity:1;transform:translate3d(-50%,-50%,0) scale(1)}}
-@keyframes spFade{to{opacity:1}}@keyframes spTag{0%,30%{opacity:0}100%{opacity:1}}
-@keyframes spRise{from{transform:translate3d(0,105%,0)}to{transform:translate3d(0,-12%,0)}}
+@keyframes spLogo{from{opacity:0}to{opacity:1}}
+@keyframes spFade{to{opacity:1}}
+@keyframes spRise{from{transform:translate3d(0,calc(100% + 90px),0)}to{transform:translate3d(0,-12%,0)}}
 @keyframes spBob{from{transform:translate3d(0,-5px,0)}to{transform:translate3d(0,7px,0)}}
 @keyframes spFlow{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 #splash.reduce .sp-logo{animation:spFadeIn .5s ease both;transform:translate3d(-50%,-50%,0)}#splash.reduce .sp-mark.white,#splash.reduce .sp-sound{display:none}#splash.reduce .sp-mark.orange{animation:none}

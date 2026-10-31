@@ -9,7 +9,7 @@ import { Btn, Modal } from '../components/ui';
 import { api, ApiError, cachedGet, clearApiMemo, errorMessage } from '../lib/api';
 import { useApi } from '../lib/hooks';
 import { ago, firstName } from '../lib/format';
-import { navigate, usePath, useTitle } from '../lib/router';
+import { navigate, signalAppReady, usePath, useTitle } from '../lib/router';
 import { useTheme } from '../lib/theme';
 import type { Bootstrap, Notice } from '../lib/types';
 import { AgendaPage } from './Agenda';
@@ -261,6 +261,9 @@ export default function AdminApp() {
   useEffect(() => {
     void check();
   }, [check]);
+  useEffect(() => {
+    if (gate !== 'loading') requestAnimationFrame(signalAppReady);
+  }, [gate]);
   if (gate === 'loading') return null;
   if (gate === 'login' || gate === 'mfa') return <Login stage={gate} onDone={() => (clearApiMemo(), check())} />;
   if (gate === 'setup') return <MfaSetup onDone={() => (clearApiMemo(), check())} />;
