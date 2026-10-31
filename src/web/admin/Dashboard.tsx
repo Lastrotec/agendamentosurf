@@ -1,5 +1,4 @@
 import { Icon } from '../components/icons';
-import { PushCard } from '../components/install';
 import { Btn, Empty, PageTitle, Spinner } from '../components/ui';
 import { ago, fmtLong, greeting, money, today } from '../lib/format';
 import { useApi } from '../lib/hooks';
@@ -34,7 +33,6 @@ export function Dashboard({ name }: { name: string }) {
       </div>
       <div className="admin-grid">
         <div>
-          <PushCard who="admin" />
           <div className="section-head"><h2>Para conferir</h2><button type="button" className="text-btn" onClick={() => navigate('/painel/reservas')}>Todas <Icon name="arrow" /></button></div>
           {data.pending.length ? <div className="list-stack">{data.pending.map((b) => <RequestRow key={b.id} b={b} name={nm(b)} />)}</div> : <Empty icon="check" title="Nada pendente." text="Quando um aluno informar um Pix, ele aparece aqui." />}
           <div className="section-head"><h2>Hoje</h2></div>
