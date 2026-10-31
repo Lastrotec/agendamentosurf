@@ -1,6 +1,7 @@
 // Pagamento por Pix (copia e cola + QR Code com o valor exato). O aluno avisa "já fiz o Pix" e o
 // instrutor confere no banco e confirma no painel. Quando o gateway for definido, a confirmação passa a ser automática.
-import { useEffect, useState } from 'react';
+import qrcode from 'qrcode-generator';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Icon } from '../components/icons';
 import { Btn, Detail, Modal } from '../components/ui';
@@ -11,17 +12,11 @@ import type { BookingView, OrderView, PixInfo } from '../lib/types';
 import { placeOf, useStore } from './store';
 
 function QrSvg({ text }: { text: string }) {
-  // Gerador de QR carregado só no pagamento (fora do pacote inicial do app).
-  const [svg, setSvg] = useState('');
-  useEffect(() => {
-    let alive = true;
-    void import('qrcode-generator').then(({ default: qrcode }) => {
-      const q = qrcode(0, 'M');
-      q.addData(text);
-      q.make();
-      if (alive) setSvg(q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }));
-    });
-    return () => void (alive = false);
+  const svg = useMemo(() => {
+    const q = qrcode(0, 'M');
+    q.addData(text);
+    q.make();
+    return q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
   }, [text]);
   // SVG gerado aqui mesmo a partir do código Pix (não vem de usuário nem do banco).
   return <div className="qr-box" role="img" aria-label="QR Code Pix" dangerouslySetInnerHTML={{ __html: svg }} />;
