@@ -3,11 +3,12 @@ import { useState } from 'react';
 
 import { LEVELS } from '../../shared/domain';
 import { formatPhoneBR, maskPhoneInput } from '../../shared/phone';
+import { Avatar } from '../components/Avatar';
 import { Icon } from '../components/icons';
 import { Btn, Detail, Empty, Modal, PageTitle, Spinner, useToast } from '../components/ui';
 import { api, errorMessage } from '../lib/api';
 import { useApi } from '../lib/hooks';
-import { fmt, initials, money, whatsappLink } from '../lib/format';
+import { fmt, money, whatsappLink } from '../lib/format';
 import { navigate, useSearch, useTitle } from '../lib/router';
 import type { BookingView, OrderView } from '../lib/types';
 import { statusLabel } from './Bookings';
@@ -17,13 +18,14 @@ interface Row {
   name: string;
   phone: string | null;
   level: string;
+  avatar: string;
   lessons: number;
   hasPassword: boolean;
   next: string | null;
   since: string;
 }
 interface Profile {
-  student: { id: string; name: string; phone: string | null; level: string; boardId: string | null; adminNotes: string; hasPassword: boolean; since: string };
+  student: { id: string; name: string; phone: string | null; level: string; avatar: string; boardId: string | null; adminNotes: string; hasPassword: boolean; since: string };
   bookings: BookingView[];
   orders: OrderView[];
   tips: { id: string; text: string; at: string }[];
@@ -56,7 +58,7 @@ function StudentModal({ id, onClose, onChanged }: { id: string; onClose: () => v
   return (
     <Modal title="Ficha do aluno" onClose={onClose} className="wide">
       <div className="profile-head">
-        <div className="avatar big">{initials(s.name)}</div>
+        <Avatar id={s.avatar} size={68} className="big" />
         <div>
           <h2>{s.name}</h2>
           <p>{s.phone ? <a className="link" href={whatsappLink(s.phone)} target="_blank" rel="noopener noreferrer">{formatPhoneBR(s.phone)} · WhatsApp</a> : 'Sem celular'}</p>
@@ -150,7 +152,7 @@ export function StudentsPage() {
             <tbody>
               {data.students.map((s) => (
                 <tr key={s.id} onClick={() => setOpen(s.id)} style={{ cursor: 'pointer' }}>
-                  <td><strong>{s.name}</strong>{!s.hasPassword && <small className="muted"> · sem acesso</small>}</td>
+                  <td><span className="row"><Avatar id={s.avatar} size={30} /><span><strong>{s.name}</strong>{!s.hasPassword && <small className="muted"> · sem acesso</small>}</span></span></td>
                   <td>{formatPhoneBR(s.phone)}</td>
                   <td>{s.level}</td>
                   <td>{s.lessons}</td>

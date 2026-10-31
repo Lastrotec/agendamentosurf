@@ -1,13 +1,14 @@
 // App do aluno: navegação, tema, avisos (sino), cadastro e etapa obrigatória das notificações.
 import { useEffect, useState } from 'react';
 
+import { Avatar } from '../components/Avatar';
 import { ForecastPage } from '../components/forecast';
 import { Icon, type IconName } from '../components/icons';
 import { Onboarding } from '../components/Onboarding';
 import { Logo } from '../components/Logo';
 import { Btn, Empty, Modal, Skeleton, Spinner } from '../components/ui';
 import { api, cachedGet, preloadApi } from '../lib/api';
-import { ago, initials, today } from '../lib/format';
+import { ago, today } from '../lib/format';
 import { navigate, signalAppReady, usePath, useSearch } from '../lib/router';
 import { useTheme } from '../lib/theme';
 import { isStandalone } from '../pwa/pwa';
@@ -114,7 +115,7 @@ function Shell() {
           {!isStandalone() && <button type="button" className="small-link install-link" onClick={() => navigate('/instalar')}><Icon name="download" />Instalar o app</button>}
           <button type="button" className="small-link" onClick={() => navigate('/privacidade')}><Icon name="shield" />Privacidade</button>
           {me ? (
-            <div className="user-mini"><div className="avatar">{initials(me.profile.name)}</div><div><strong>{me.profile.name}</strong><small>{me.profile.level}</small></div></div>
+            <div className="user-mini"><Avatar id={me.profile.avatar} /><div><strong>{me.profile.name}</strong><small>{me.profile.level}</small></div></div>
           ) : (
             <Btn full variant="secondary" icon="user" onClick={() => requireLogin()}>Entrar</Btn>
           )}
